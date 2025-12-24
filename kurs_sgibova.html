@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Информационно-справочная система онлайн репетиторства</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        u {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        button {
+            margin: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .selected {
+            background-color: #e0e0e0;
+        }
+
+        select {
+            margin: 5px;
+            padding: 5px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            margin: 5px 0;
+            padding: 5px;
+        }
+
+        input[readonly] {
+            background-color: #f9f9f9;
+            color: #666;
+            border: 1px solid #ccc;
+            cursor: not-allowed;
+        }
+
+        input:disabled {
+            background-color: #f9f9f9;
+            color: #666;
+            border: 1px solid #ccc;
+            cursor: not-allowed;
+        }
+
+        #error-message {
+            color: red;
+            font-weight: bold;
+        }
+
+        /* Стили для шапки */
+        header {
+            background-color: #f0f0f0;
+            padding: 10px;
+            text-align: center;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #ddd;
+        }
+
+        /* Стили для секций */
+        #main,
+        #about {
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <a href="#main" id="main-link">Главная</a>
+            <a href="#about" id="about-link">Об авторе</a>
+        </nav>
+    </header>
+    <div id="main">
+        <h1>Информационно-справочная система онлайн репетиторства</h1>
+        <div id="error-modal" class="modal"
+            style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
+            <div class="modal-content"
+                style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px;">
+                <span id="close-modal"
+                    style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                <p id="error-message"></p>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div>
+                <select id="tableSelector">
+                    <option value="prices">Предметы</option>
+                    <option value="teachers">Преподаватели</option>
+                    <option value="students">Ученики</option>
+                    <option value="classes">Занятия</option>
+                </select>
+                <button id="addBtn">Добавить</button>
+                <button id="editBtn" disabled>Редактировать</button>
+                <button id="deleteBtn" disabled>Удалить</button>
+            </div>
+            <div>
+                <button id="testBtn">Заполнить</button>
+                <button id="clearBtn">Очистить</button>
+            </div>
+        </div>
+        <table id="tutoringTable">
+            <thead id="tableHead">
+                <tr>
+                    <th>ID</th>
+                    <th>ФИО</th>
+                    <th>О преподавателе</th>
+                    <th>Название предмета</th>
+                    <th>Стаж</th>
+                    <th>Телефон</th>
+                    <th>Рейтинг</th>
+                </tr>
+            </thead>
+            <tbody id="tutoringBody"></tbody>
+        </table>
+
+        <!-- Модальное окно для добавления/редактирования -->
+        <div id="AddEditModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="modalTitle">Добавить</h2>
+                <form id="userForm">
+                    <div id="formFields"></div>
+                    <button type="submit">Сохранить</button>
+                    <button type="button" id="cancelAddEdit">Отмена</button>
+                </form>
+            </div>
+        </div>
+        <!-- Модальное окно для подтверждения удаления -->
+        <div id="deleteModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Подтвердить удаление</h2>
+                <p>Вы уверены, что хотите удалить данную запись?</p>
+                <button id="confirmDelete">Да, удалить</button>
+                <button id="cancelDelete">Отмена</button>
+            </div>
+        </div>
+
+        <!-- Модальное окно для тестового заполнения -->
+        <div id="testModal" class="modal">
+            <div class="modal-content">
+                <h2>Тестовое заполнение</h2>
+                <label for="numRecords">Количество записей:</label>
+                <input type="number" id="numRecords" min="1" max="100" value="10">
+                <br><br>
+                <button id="fillBtn">Заполнить</button>
+                <button id="cancelTest">Отмена</button>
+            </div>
+        </div>
+    </div>
+    <div id="about" style="display: none;">
+        <h1>Об авторе</h1>
+        <p><u>ФИО:</u> Сгибова Ангелина Львовна</p>
+        <p><u>Группа:</u> ДЦПУП23-1</p>
+        <p><u>Учебное заведение:</u> ФГОБУ ВО "Финансовый университет при правительстве Российской Федерации (Финансовый университет)"</p>
+        <p><u>Номер телефона:</u> +79023414040</p>
+        <p><u>Почта:</u> sgibova.angelina@mail.ru</p>
+        <p><u>Описание:</u> Данный проект реализован с помощью языка разметки HTML, декларативного языка стилей CSS и языка программирования JavaScript.</p>
+        <p>Также в данном проекте использовалась база данных Sqlite. Запросы к базе данных осуществлялись с помощью языка запросов SQL.</p>
+        <p><u>Дата начала проекта:</u> 20.09.2025</p>
+        <p><u>Дата завершения проекта:</u> 11.12.2025</p>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script>
+        let db;
+        let selectedUserId = null;
+        let currentTable = 'prices';
+        let currentSortColumn = null; // Индекс столбца для сортировки (0-based)
+        let currentSortDirection = null; // 'desc' (убывание), 'asc' (возрастание) или null (без сортировки)
+        let sortStates = {}; // Объект для хранения состояния сортировки: sortStates[tableName][columnIndex] = 0 (нет), 1 (desc), 2 (asc)
+
+        const tables = {
+            teachers: {
+                name: 'Teachers',
+                columns: ['ФИО', 'О преподавателе', 'Название предмета', 'Стаж (лет)', 'Телефон', 'Рейтинг'],
+                fields: [
+                    { name: 'fio', label: 'ФИО', type: 'text' },
+                    { name: 'about', label: 'О преподавателе', type: 'textarea' },
+                    { name: 'subject', label: 'Название предмета', type: 'text' },
+                    { name: 'experience', label: 'Стаж', type: 'number' },
+                    { name: 'phone', label: 'Телефон', type: 'text' },
+                    { name: 'rating', label: 'Рейтинг', type: 'number', step: '0.1' },
+                ],
+                createSQL: "CREATE TABLE IF NOT EXISTS Teachers (id INTEGER PRIMARY KEY AUTOINCREMENT, fio TEXT UNIQUE, about TEXT, subject TEXT, experience INTEGER, phone TEXT UNIQUE, rating REAL, FOREIGN KEY (subject) REFERENCES Prices(subject))"
+            },
+            students: {
+                name: 'Students',
+                columns: ['ФИО', 'Телефон', 'Email', 'Дата рождения', 'Класс школы'],
+                fields: [
+                    { name: 'fio', label: 'ФИО', type: 'text' },
+                    { name: 'phone', label: 'Телефон', type: 'text' },
+                    { name: 'email', label: 'Email', type: 'email' },
+                    { name: 'birthdate', label: 'Дата рождения', type: 'date' },
+                    { name: 'school_class', label: 'Класс школы', type: 'text' },
+                ],
+                createSQL: "CREATE TABLE IF NOT EXISTS Students (id INTEGER PRIMARY KEY AUTOINCREMENT, fio TEXT UNIQUE, phone TEXT UNIQUE, email TEXT, birthdate TEXT, school_class TEXT)"
+            },
+            prices: {
+                name: 'Prices',
+                columns: ['Название предмета', 'Цена за час (в рублях)'],
+                fields: [
+                    { name: 'subject', label: 'Название предмета', type: 'text' },
+                    { name: 'price_per_hour', label: 'Цена за час', type: 'number', step: '0.01' },
+                ],
+                createSQL: "CREATE TABLE IF NOT EXISTS Prices (id INTEGER PRIMARY KEY AUTOINCREMENT, subject TEXT UNIQUE, price_per_hour REAL)"
+            },
+            classes: {
+                name: 'Classes',
+                columns: ['ФИО учителя', 'ФИО ученика', 'Название предмета', 'Дата и время', 'Продолжительность (мин)', 'Цена за час'],
+                fields: [
+                    { name: 'teacher_id', label: 'ФИО учителя', type: 'number' },
+                    { name: 'student_id', label: 'ФИО ученика', type: 'number' },
+                    { name: 'subject', label: 'Название предмета', type: 'text' },
+                    { name: 'date_time', label: 'Дата и время', type: 'datetime-local' },
+                    { name: 'duration', label: 'Продолжительность (мин)', type: 'number' },
+                ],
+                createSQL: "CREATE TABLE IF NOT EXISTS Classes (id INTEGER PRIMARY KEY AUTOINCREMENT, teacher_id INTEGER, student_id INTEGER, subject TEXT, date_time TEXT, duration INTEGER, FOREIGN KEY (teacher_id) REFERENCES Teachers(id) ON DELETE CASCADE, FOREIGN KEY (student_id) REFERENCES Students(id) ON DELETE CASCADE)"
+            }
+        };
+
+        function generateUniqueFio(usedFios) {
+            const names = ['Иван', 'Мария', 'Алексей', 'Ольга', 'Дмитрий', 'Анна', 'Сергей', 'Елена', 'Андрей', 'Татьяна'];
+            const surnames = ['Иванов', 'Петров', 'Сидоров', 'Кузнецов', 'Смирнов', 'Попов', 'Васильев', 'Новиков'];
+            const allCombinations = [];
+            names.forEach(name => {
+                surnames.forEach(surname => {
+                    allCombinations.push(name + ' ' + surname);
+                });
+            });
+            const available = allCombinations.filter(fio => !usedFios.has(fio));
+            if (available.length === 0) {
+                throw new Error('Нет доступных уникальных ФИО для генерации.');
+            }
+            return available[Math.floor(Math.random() * available.length)];
+        }
+
+        function generateRandomText(subject, experience) {
+            const descriptions = {
+                'Математика': [
+                    `Опытный преподаватель математики с ${experience}-летним стажем работы в школах и онлайн-курсах. Специализируюсь на алгебре, геометрии и подготовке к ЕГЭ, где помогаю ученикам не только понимать формулы, но и применять их в повседневной жизни. Мой подход сочетает теорию с практическими задачами, включая решение олимпиадных задач и анализ ошибок. За годы работы я разработал уникальные методики, помогающие даже слабым ученикам достичь высоких результатов, таких как повышение баллов на 20-30 пунктов. Люблю видеть прогресс учеников и мотивирую их на самостоятельное мышление через интерактивные занятия. В своих уроках я часто использую визуализации и примеры из реальной жизни, чтобы сделать математику доступной и интересной. Мои ученики отмечают, что после занятий математика становится не просто предметом, а инструментом для решения проблем.`,
+                    `Преподаватель математики, увлеченный числовыми загадками и логическими головоломками, с ${experience} годами опыта. Помогаю школьникам и студентам осваивать тригонометрию, дифференциальное исчисление и статистику через интерактивные примеры, визуализации и групповые дискуссии. Имею сертификаты по методике преподавания и фокусируюсь на индивидуальном подходе, чтобы устранить пробелы в знаниях и развить уверенность. Стаж преподавания позволяет мне адаптировать материал под уровень каждого ученика, используя игры и квизы для закрепления материала. Это помогает ученикам запоминать информацию надолго и развивать критическое мышление. В своей практике я часто провожу дополнительные занятия по подготовке к экзаменам, где акцент на стратегии решения задач. Мои ученики достигают отличных результатов благодаря сочетанию строгой дисциплины и творческого подхода.`,
+                    `Стажный специалист по математике с опытом репетиторства более ${experience} лет, специализирующийся на векторной алгебре, геометрии и математическом анализе. Объясняю сложные темы простым языком, используя аналогии из повседневной жизни, такие как физика движения или финансы. Работаю с учениками разных возрастов, подстраивая уроки под их уровень для максимальной эффективности и мотивации. Мои занятия включают практические упражнения, домашние задания и разбор типичных ошибок. За это время я помог сотням учеников улучшить оценки и развить интерес к предмету. Люблю использовать современные инструменты, такие как онлайн-калькуляторы и симуляторы, чтобы сделать обучение интерактивным. В итоге, ученики не только сдают экзамены, но и применяют знания в реальных ситуациях, таких как программирование или инженерия.`
+                ],
+                'Физика': [
+                    `Преподаватель физики с глубоким пониманием механики, термодинамики и электродинамики, обладающий ${experience}-летним опытом в онлайн- и оффлайн-обучении. Включая подготовку к олимпиадам, я использую эксперименты, симуляции и реальные демонстрации, чтобы сделать абстрактные понятия осязаемыми. Помогаю ученикам полюбить науку через практику, объясняя законы Ньютона, термодинамические процессы и волновую оптику. За годы работы я провел сотни занятий, адаптируя материал под индивидуальные нужды и интересы. Мой подход способствует не только пониманию, но и творческому применению знаний в проектах. Ученики часто отмечают, что после моих уроков физика становится увлекательной и связанной с повседневной жизнью. Я также подчеркиваю важность экспериментального метода и критического мышления.`,
+                    `Специалист по физике, специализирующийся на электродинамике, оптике и квантовой механике, с ${experience} годами стажа. Работаю с учениками от 7-го класса до университета, используя логический разбор задач, визуализации и моделирование процессов. Подход основан на пошаговом объяснении, что повышает уверенность и результаты на экзаменах, таких как ЕГЭ или ОГЭ. Я часто привожу примеры из техники, астрономии и медицины, чтобы объяснить сложные явления. Это делает уроки запоминающимися и мотивирующими к дальнейшему изучению. В своей практике я фокусируюсь на развитии навыков решения задач и понимании фундаментальных принципов. Мои ученики успешно поступают в вузы и выбирают технические специальности благодаря глубокому знанию предмета.`,
+                    `Опытный учитель физики с фокусом на квантовую механику, астрофизику и релятивистскую физику, имеющий ${experience} лет преподавания. Помогаю преодолевать страх перед формулами через пошаговые объяснения, реальные примеры и исторический контекст. Имею публикации в образовательных журналах и всегда адаптирую материал под интересы ученика, включая проекты по моделированию звезд или частиц. Мой стаж позволяет сочетать теорию с практикой, используя лабораторные работы и симуляции. Ученики развивают интерес к науке и навыки самостоятельного исследования. В итоге, физика становится не просто предметом, а способом понимания мира. Я также готовлю к конкурсам, где акцент на инновационных решениях и креативности.`
+                ],
+                'Химия': [
+                    `Преподаватель химии с ${experience}-летним опытом лабораторных и теоретических занятий, специализирующийся на органической химии, биохимии и аналитической химии. Готовлю к ЕГЭ и олимпиадам, используя виртуальные эксперименты, модели молекул и простые аналогии для увлекательного изучения. Уроки включают демонстрации реакций, анализ состава веществ и экологические аспекты. За годы работы я накопил богатый опыт работы с различными типами учеников, помогая им преодолеть сложности. Мои методики развивают интерес к науке и глубокое понимание процессов, таких как катализ или полимеризация. Ученики часто участвуют в проектах по экологии или фармацевтике. Это способствует ответственному подходу к изучению и применению знаний в жизни.`,
+                    `Стажный репетитор по химии, фокусирующийся на неорганических реакциях, стехиометрии и электрохимии, с более чем ${experience} годами опыта. Работаю с разными уровнями, от школьников до абитуриентов, используя комбинацию теории и практики. Акцент на безопасности, понимании молекулярных взаимодействий и лабораторных навыках. Мой метод включает демонстрации, расчеты и обсуждение реальных приложений, таких как производство удобрений или батарей. Это помогает ученикам лучше усваивать материал и готовиться к экзаменам. В своей практике я адаптирую уроки под индивидуальные цели, развивая навыки анализа и экспериментирования. Ученики достигают высоких баллов благодаря систематическому подходу и мотивации.`,
+                    `Учитель химии, увлеченный экологией, аналитической химией и биотехнологиями, с ${experience} годами стажа. Помогаю разбираться в сложных процессах через модели, видео и практические задания, развивая критическое мышление и интерес к науке. Уроки включают темы загрязнения окружающей среды, альтернативной энергии и генной инженерии. Я всегда подчеркиваю практическое применение знаний в жизни и карьере. Мои занятия мотивируют учеников к ответственному подходу и дальнейшему изучению. За это время я провел множество экспериментов, показывающих химию как динамичную науку. Ученики развивают навыки наблюдения, анализа и творческого решения проблем.`
+                ],
+                'Биология': [
+                    `Преподаватель биологии с экспертизой в генетике, экологии и физиологии, обладающий ${experience} годами опыта онлайн-репетиторства. Включая подготовку к вступительным экзаменам, я строю уроки на визуальных материалах, дискуссиях и практических примерах. Помогаю ученикам понимать эволюцию, клеточные процессы и экосистемы через анализ и проекты. Мой подход развивает интерес к природе и научному методу. За годы работы я адаптировал материал для разных уровней, используя интерактивные модели и кейсы. Ученики часто участвуют в полевых наблюдениях или виртуальных экскурсиях. Это способствует глубокому пониманию и мотивации к изучению биологии как основы жизни.`,
+                    `Специалист по биологии, специализирующийся на анатомии человека, ботанике и микробиологии, с ${experience} годами стажа. Работаю с мотивацией учеников к глубокому изучению жизни на клеточном и организменном уровнях. Уроки включают диаграммы, видео и дискуссии о здоровье, питании и окружающей среде. Мой метод сочетает теорию с практическими упражнениями, такими как анализ ДНК или экосистем. Это помогает развивать навыки наблюдения и критического мышления. В практике я фокусируюсь на связи биологии с медициной и экологией. Ученики успешно сдают экзамены и выбирают карьеру в науке благодаря увлекательным занятиям.`,
+                    `Опытный учитель биологии, фокусирующийся на зоологии, генетике и биотехнологиях, с более чем ${experience} годами опыта. Помогаю осваивать сложные темы через полевые примеры, эксперименты и исторические контексты. Развиваю интерес к природе и умение применять знания в реальных ситуациях. Уроки включают проекты по сохранению видов или генетическим исследованиям. Мой стаж позволяет сочетать строгий анализ с творчеством. Ученики отмечают, что биология становится захватывающей и связанной с будущим. Я также готовлю к олимпиадам, подчеркивая инновации и этику в науке.`
+                ],
+                'История': [
+                    `Преподаватель истории с глубокими знаниями мировой и отечественной хронологии, обладающий ${experience} годами опыта. Включая работу с архивами и подготовку к олимпиадам, я сочетаю факты с анализом событий, помогая ученикам видеть связи между прошлым и настоящим. Уроки построены на дебатах, картах и источниках, развивая критическое мышление. Мой подход мотивирует к изучению через ролевые игры и проекты. За годы работы я помог ученикам лучше понимать исторические процессы и их влияние. Ученики часто участвуют в реконструкциях событий или анализе документов. Это способствует развитию навыков аргументации и эмпатии.`,
+                    `Стажный репетитор по истории, специализирующийся на древних цивилизациях, революциях и социальном развитии, с ${experience} годами опыта. Мой повествовательный метод включает элементы ролевой игры для живости и запоминаемости. Фокусируюсь на критическом мышлении и интерпретации источников, адаптируя материал под интересы. Уроки включают обсуждение этических вопросов и глобальных трендов. В практике я использую визуалы и аудио для погружения. Ученики развивают навыки анализа и презентации. Это помогает в подготовке к экзаменам и личностному росту.`,
+                    `Учитель истории, увлеченный социальными движениями, биографиями лидеров и культурными изменениями, с ${experience} годами стажа. Помогаю разбирать сложные периоды через timelines, документы и дискуссии для лучшего запоминания. Мой подход сочетает факты с личными историями, мотивируя интерес к предмету. Уроки включают проекты по исследованию эпох или фигур. За это время я развил методики для разных возрастов. Ученики достигают успехов в сочинениях и олимпиадах благодаря глубокому пониманию.`
+                ],
+                'Литература': [
+                    `Преподаватель литературы с экспертизой в русской классике, поэзии и зарубежной прозе, обладающий ${experience} годами опыта. Готовлю к сочинениям и ЕГЭ, анализируя тексты, обсуждая темы и творческие задания. Уроки развивают связь с авторами и эпохами через чтение и дискуссии. Мой метод сочетает теорию с практикой, мотивируя эссеистику. За годы работы я помог ученикам улучшить навыки письма и понимания. Ученики участвуют в проектах по интерпретации произведений. Это способствует культурному развитию и любви к чтению.`,
+                    `Специалист по литературе, фокусирующийся на зарубежной прозе, драматургии и символизме, с ${experience} годами стажа. Мой интерпретативный подход акцентирует контекст и анализ, развивая эмоциональное восприятие. Уроки включают обсуждения и творческие упражнения. В практике я адаптирую материал под интересы, используя фильмы и адаптации. Ученики развивают навыки критики и самовыражения. Это помогает в экзаменах и личностному росту.`,
+                    `Опытный учитель литературы, специализирующийся на фольклоре, современной прозе и критике, с более чем ${experience} годами опыта. Работаю с мотивацией через чтение вслух, эссе и дискуссии. Цель — привить любовь к чтению и умение аргументировать. Уроки включают анализ жанров и тем. Мой стаж позволяет сочетать классику с современностью. Ученики достигают высоких баллов благодаря увлекательным занятиям.`
+                ],
+                'Английский': [
+                    `Преподаватель английского с сертификатом CELTA и ${experience}-летним стажем, специализирующийся на разговорной практике, грамматике и IELTS. Уроки интерактивны: ролевые игры, видео и аудио для уверенного общения. Мой подход преодолевает барьеры через иммерсию. За годы работы я помог ученикам улучшить fluency. Ученики участвуют в проектах по культуре. Это способствует глобальному мышлению.`,
+                    `Стажный репетитор английского, фокусирующийся на бизнес-английском и литературе, с более чем ${experience} годами опыта. Использую индивидуальные планы и упражнения для преодоления барьеров. Акцент на практике и мотивации. Уроки включают темы карьеры и путешествий. Мои методики развивают навыки для реальной жизни.`,
+                    `Учитель английского, увлеченный американской культурой и фонетикой, с ${experience} годами стажа. Помогаю от начинающих до advanced, используя apps и фильмы. Акцент на fluency и контексте. Уроки мотивируют естественное обучение. Ученики достигают целей благодаря разнообразию.`
+                ],
+                'Русский': [
+                    `Преподаватель русского языка с экспертизой в орфографии, пунктуации и стилистике, обладающий ${experience} годами опыта. Готовлю к ЕГЭ через анализ текстов и упражнения. Уроки развивают навыки письма и речи. Мой подход мотивирует четкое выражение мыслей. За годы работы я помог ученикам улучшить грамотность. Ученики участвуют в проектах по литературе.`,
+                    `Специалист по русскому, фокусирующийся на стилистике и литературоведении, с ${experience} годами стажа. Использую творческие задания и дискуссии. Акцент на классике и современности. Уроки развивают эстетический вкус. Мои методики помогают в экзаменах и самовыражении.`,
+                    `Опытный учитель русского, специализирующийся на фонетике и синтаксисе, с более чем ${experience} годами опыта. Работаю с играми и тестами для уверенного владения. Цель — развитие навыков в устной и письменной форме. Ученики достигают успехов благодаря систематическому подходу.`
+                ]
+            };
+            const subjectDescs = descriptions[subject] || [
+                `Опытный преподаватель с ${experience}-летним стажем. Люблю работать с детьми и индивидуальный подход. Имею высшее образование и сертификаты. Мои уроки сочетают теорию и практику, помогая ученикам развивать навыки и интерес к предмету. За годы работы я адаптировал методики под разные уровни, используя интерактивные элементы и обратную связь. Это позволяет ученикам не только усваивать материал, но и применять его в повседневной жизни. Мои ученики часто отмечают прогресс в понимании и мотивации к дальнейшему обучению.`
+            ];
+            return subjectDescs[Math.floor(Math.random() * subjectDescs.length)];
+        }
+
+        function getExistingSubjects() {
+            try {
+                const result = db.exec('SELECT DISTINCT subject FROM Prices');
+                if (result.length > 0) {
+                    return result[0].values.map(row => row[0]); // row[0] — первый столбец (subject)
+                }
+                return [];
+            } catch (error) {
+                console.error('Ошибка при получении существующих предметов:', error);
+                return [];
+            }
+        }
+
+        function getExistingTeacherIds() {
+            try {
+                const result = db.exec('SELECT id FROM Teachers');
+                if (result.length > 0) {
+                    return result[0].values.map(row => row[0]); // row[0] — первый столбец (id)
+                }
+                return [];
+            } catch (error) {
+                console.error('Ошибка при получении существующих ID учителей:', error);
+                return [];
+            }
+        }
+
+        function getExistingStudentIds() {
+            try {
+                const result = db.exec('SELECT id FROM Students');
+                if (result.length > 0) {
+                    return result[0].values.map(row => row[0]); // row[0] — первый столбец (id)
+                }
+                return [];
+            } catch (error) {
+                console.error('Ошибка при получении существующих ID студентов:', error);
+                return [];
+            }
+        }
+
+        function generateRandomSubject() {
+            const subjects = ['Математика', 'Физика', 'Химия', 'Биология', 'История', 'Литература', 'Английский', 'Русский'];
+            return subjects[Math.floor(Math.random() * subjects.length)];
+        }
+
+        function generateRandomPhone() {
+            return '+7' + (Math.floor(Math.random() * 9000000000) + 1000000000);
+        }
+
+        function generateRandomEmail(fio) {
+            const domains = ['gmail.com', 'yandex.ru', 'mail.ru'];
+            return fio.replace(' ', '').toLowerCase() + '@' + domains[Math.floor(Math.random() * domains.length)];
+        }
+
+        function generateRandomDate() {
+            const start = new Date(2000, 0, 1);
+            const end = new Date(2010, 11, 31);
+            const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+            return date.toISOString().split('T')[0];
+        }
+
+        function generateRandomClass() {
+            const classes = ['1А', '2Б', '3В', '4Г', '5Д', '6Е', '7Ж', '8З', '9И', '10К', '11Л'];
+            return classes[Math.floor(Math.random() * classes.length)];
+        }
+
+        function generateRandomDateTime() {
+            const now = new Date();
+            const future = new Date(now.getTime() + Math.random() * 365 * 24 * 60 * 60 * 1000);
+            return future.toISOString().slice(0, 16);
+        }
+
+        function generateRandomData(tableName, count) {
+            // Получаем существующие данные для FK и уникальности
+            const existingSubjects = getExistingSubjects();
+            const existingTeacherIds = getExistingTeacherIds();
+            const existingStudentIds = getExistingStudentIds();
+
+            // Множества для обеспечения уникальности
+            const usedPhones = new Set();
+            const usedEmails = new Set();
+            const usedSubjects = new Set();
+            const usedClasses = new Set(); // Для Classes: уникальность по (teacher_id, date_time)
+            const usedTeacherFios = new Set();
+            const usedStudentFios = new Set();
+
+            // Получить существующие уникальные данные
+            try {
+                const teacherPhones = db.exec('SELECT phone FROM Teachers');
+                if (teacherPhones.length > 0) {
+                    teacherPhones[0].values.forEach(row => usedPhones.add(row[0]));
+                }
+                const studentPhones = db.exec('SELECT phone FROM Students');
+                if (studentPhones.length > 0) {
+                    studentPhones[0].values.forEach(row => usedPhones.add(row[0]));
+                }
+                const studentEmails = db.exec('SELECT email FROM Students');
+                if (studentEmails.length > 0) {
+                    studentEmails[0].values.forEach(row => usedEmails.add(row[0]));
+                }
+                const subjectsData = db.exec('SELECT DISTINCT subject FROM Prices');
+                if (subjectsData.length > 0) {
+                    subjectsData[0].values.forEach(row => usedSubjects.add(row[0]));
+                }
+                const classesData = db.exec('SELECT teacher_id, date_time FROM Classes');
+                if (classesData.length > 0) {
+                    classesData[0].values.forEach(row => usedClasses.add(`${row[0]}-${row[1]}`));
+                }
+                const teacherFios = db.exec('SELECT fio FROM Teachers');
+                if (teacherFios.length > 0) {
+                    teacherFios[0].values.forEach(row => usedTeacherFios.add(row[0]));
+                }
+                const studentFios = db.exec('SELECT fio FROM Students');
+                if (studentFios.length > 0) {
+                    studentFios[0].values.forEach(row => usedStudentFios.add(row[0]));
+                }
+            } catch (error) {
+                console.error('Ошибка при получении существующих уникальных данных:', error);
+            }
+
+            if (tableName === 'prices') {
+                const allSubjects = ['Математика', 'Физика', 'Химия', 'Биология', 'История', 'Литература', 'Английский', 'Русский'];
+                const availableSubjects = allSubjects.filter(subject => !usedSubjects.has(subject));
+                const subjectsToAdd = availableSubjects.slice(0, count); // Ограничить количеством count
+                subjectsToAdd.forEach(subject => {
+                    usedSubjects.add(subject);
+                    try {
+                        addRecord('Prices', {
+                            subject: subject,
+                            price_per_hour: Math.floor(Math.random() * 2000) + 500
+                        });
+                    } catch (error) {
+                        console.warn(`Ошибка при добавлении в Prices: ${error.message}. Пропускаем.`);
+                    }
+                });
+            } else if (tableName === 'teachers') {
+                if (existingSubjects.length === 0) {
+                    console.warn('Нет предметов в таблице Prices. Добавьте предметы сначала.');
+                    return;
+                }
+                for (let i = 0; i < count; i++) {
+                    let phone, fio;
+                    let attemptsPhone = 0;
+                    do {
+                        phone = generateRandomPhone();
+                        attemptsPhone++;
+                    } while (usedPhones.has(phone) && attemptsPhone < 100);
+                    if (attemptsPhone >= 100) {
+                        console.warn('Не удалось сгенерировать уникальный телефон для teachers после 100 попыток.');
+                        break;
+                    }
+                    try {
+                        fio = generateUniqueFio(usedTeacherFios);
+                    } catch (error) {
+                        console.warn(`Не удалось сгенерировать уникальное ФИО для teachers: ${error.message}`);
+                        usedPhones.delete(phone);
+                        break;
+                    }
+                    usedPhones.add(phone);
+                    usedTeacherFios.add(fio);
+                    const subject = existingSubjects[Math.floor(Math.random() * existingSubjects.length)];
+                    const experience = Math.floor(Math.random() * 16) + 5;
+                    const description = generateRandomText(subject, experience);
+                    try {
+                        addRecord('Teachers', {
+                            fio: fio,
+                            subject: subject,
+                            experience: experience,
+                            about: description,
+                            phone: phone,
+                            rating: (Math.random() * 5).toFixed(1)
+                        });
+                    } catch (error) {
+                        console.warn(`Ошибка при добавлении в Teachers: ${error.message}. Пропускаем.`);
+                        usedPhones.delete(phone);
+                        usedTeacherFios.delete(fio);
+                    }
+                }
+            } else if (tableName === 'students') {
+                for (let i = 0; i < count; i++) {
+                    let phone, email, fio;
+                    let attemptsPhone = 0;
+                    do {
+                        phone = generateRandomPhone();
+                        attemptsPhone++;
+                    } while (usedPhones.has(phone) && attemptsPhone < 100);
+                    if (attemptsPhone >= 100) {
+                        console.warn('Не удалось сгенерировать уникальный телефон для students после 100 попыток.');
+                        break;
+                    }
+                    try {
+                        fio = generateUniqueFio(usedStudentFios);
+                    } catch (error) {
+                        console.warn(`Не удалось сгенерировать уникальное ФИО для students: ${error.message}`);
+                        usedPhones.delete(phone);
+                        break;
+                    }
+                    usedPhones.add(phone);
+                    usedStudentFios.add(fio);
+                    let attemptsEmail = 0;
+                    do {
+                        email = generateRandomEmail(fio);
+                        attemptsEmail++;
+                    } while (usedEmails.has(email) && attemptsEmail < 100);
+                    if (attemptsEmail >= 100) {
+                        console.warn('Не удалось сгенерировать уникальный email для students после 100 попыток.');
+                        usedPhones.delete(phone);
+                        usedStudentFios.delete(fio);
+                        continue;
+                    }
+                    usedEmails.add(email);
+                    try {
+                        addRecord('Students', {
+                            fio: fio,
+                            phone: phone,
+                            email: email,
+                            birthdate: generateRandomDate(),
+                            school_class: generateRandomClass()
+                        });
+                    } catch (error) {
+                        console.warn(`Ошибка при добавлении в Students: ${error.message}. Пропускаем.`);
+                        usedPhones.delete(phone);
+                        usedEmails.delete(email);
+                        usedStudentFios.delete(fio);
+                    }
+                }
+            } else if (tableName === 'classes') {
+                if (existingTeacherIds.length === 0 || existingStudentIds.length === 0 || existingSubjects.length === 0) {
+                    console.warn('Недостаточно данных в связанных таблицах (Teachers, Students, Prices). Добавьте данные сначала.');
+                    return;
+                }
+                for (let i = 0; i < count; i++) {
+                    const teacherId = existingTeacherIds[Math.floor(Math.random() * existingTeacherIds.length)];
+                    const studentId = existingStudentIds[Math.floor(Math.random() * existingStudentIds.length)];
+                    const subject = existingSubjects[Math.floor(Math.random() * existingSubjects.length)];
+                    let date_time;
+                    let key;
+                    do {
+                        date_time = generateRandomDateTime();
+                        key = `${teacherId}-${date_time}`;
+                    } while (usedClasses.has(key));
+                    usedClasses.add(key);
+                    try {
+                        addRecord('Classes', {
+                            teacher_id: teacherId,
+                            student_id: studentId,
+                            subject: subject,
+                            date_time: date_time,
+                            duration: Math.floor(Math.random() * 60) + 30
+                        });
+                    } catch (error) {
+                        console.warn(`Ошибка при добавлении в Classes: ${error.message}. Пропускаем.`);
+                    }
+                }
+            }
+        }
+
+        // Функция для загрузки преподавателей в select
+        function loadTeachers() {
+            const teacherSelect = document.getElementById('teacher-select');
+            if (!teacherSelect) return;
+            // Очистить существующие опции, кроме первой
+            teacherSelect.innerHTML = '<option value="">Выберите преподавателя</option>';
+            // Запрос к БД
+            const stmt = db.prepare('SELECT id, fio FROM Teachers ORDER BY fio');
+            while (stmt.step()) {
+                const row = stmt.getAsObject();
+                const option = document.createElement('option');
+                option.value = row.id;
+                option.textContent = row.fio;
+                teacherSelect.appendChild(option);
+            }
+            stmt.free();
+        }
+
+        // Функция для загрузки учеников в select
+        function loadStudents() {
+            const studentSelect = document.getElementById('student-select');
+            if (!studentSelect) return;
+            // Очистить существующие опции, кроме первой
+            studentSelect.innerHTML = '<option value="">Выберите ученика</option>';
+            // Запрос к БД
+            const stmt = db.prepare('SELECT id, fio FROM Students ORDER BY fio');
+            while (stmt.step()) {
+                const row = stmt.getAsObject();
+                const option = document.createElement('option');
+                option.value = row.id;
+                option.textContent = row.fio;
+                studentSelect.appendChild(option);
+            }
+            stmt.free();
+        }
+
+        // Функция для добавления обработчика изменения выбора преподавателя
+        function addTeacherChangeListener() {
+            const teacherSelect = document.getElementById('teacher-select');
+            if (!teacherSelect) return;
+            teacherSelect.addEventListener('change', function () {
+                const selectedId = this.value;
+                const subjectInput = document.getElementById('subject');
+                const priceInput = document.getElementById('price_per_hour');
+                if (selectedId) {
+                    const stmt = db.prepare('SELECT subject FROM Teachers WHERE id = ?');
+                    stmt.bind([selectedId]);
+                    if (stmt.step()) {
+                        const row = stmt.getAsObject();
+                        subjectInput.value = row.subject || '';
+                        // Получить цену из Prices по subject
+                        const priceStmt = db.prepare('SELECT price_per_hour FROM Prices WHERE subject = ?');
+                        priceStmt.bind([row.subject]);
+                        if (priceStmt.step()) {
+                            const priceRow = priceStmt.getAsObject();
+                            priceInput.value = priceRow.price_per_hour || '';
+                        } else {
+                            priceInput.value = '';
+                        }
+                        priceStmt.free();
+                    } else {
+                        subjectInput.value = '';
+                        priceInput.value = '';
+                    }
+                    stmt.free();
+                } else {
+                    subjectInput.value = '';
+                    priceInput.value = '';
+                }
+            });
+        }
+
+        // Сохранение/загрузка БД в IndexedDB
+        async function saveDatabase() {
+            if (!db) return;
+            const data = db.export();
+            const array = new Uint8Array(data);
+            const request = indexedDB.open('StudyDB', 1);
+            request.onupgradeneeded = (e) => {
+                const idb = e.target.result;
+                if (!idb.objectStoreNames.contains('sqlite')) idb.createObjectStore('sqlite');
+            };
+            request.onsuccess = (e) => {
+                const idb = e.target.result;
+                const tx = idb.transaction(['sqlite'], 'readwrite');
+                tx.objectStore('sqlite').put(array, 'database');
+            };
+        }
+
+        async function loadDatabase() {
+            return new Promise((resolve) => {
+                const request = indexedDB.open('StudyDB', 1);
+                request.onupgradeneeded = (e) => {
+                    const idb = e.target.result;
+                    if (!idb.objectStoreNames.contains('sqlite')) idb.createObjectStore('sqlite');
+                };
+                request.onsuccess = (e) => {
+                    const idb = e.target.result;
+                    const tx = idb.transaction(['sqlite'], 'readonly');
+                    const store = tx.objectStore('sqlite');
+                    const getReq = store.get('database');
+                    getReq.onsuccess = () => resolve(getReq.result ? new Uint8Array(getReq.result) : null);
+                };
+            });
+        }
+
+        // Инициализация БД
+        async function initDatabase() {
+            try {
+                const SQL = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` });
+                const savedData = await loadDatabase();
+                db = savedData ? new SQL.Database(savedData) : new SQL.Database();
+                db.run('PRAGMA foreign_keys = ON;');
+                Object.values(tables).forEach(table => db.run(table.createSQL));
+                displayTable();
+                attachEventListeners(); // Добавлено для фикса кнопок
+            } catch (error) {
+                console.error('Ошибка инициализации БД:', error);
+            }
+        }
+
+        function displayTable() {
+            const table = tables[currentTable];
+            // Добавлено: добавляем data-column-index к th для идентификации столбца
+            document.getElementById('tableHead').innerHTML = '<tr>' + table.columns.map((col, i) => {
+                let arrow = '';
+                if (sortStates[currentTable] && sortStates[currentTable][i] !== undefined) {
+                    const state = sortStates[currentTable][i];
+                    if (state === 1) arrow = ' ▲'; // Убывание (треугольник вниз с пробелом)
+                    else if (state === 2) arrow = ' ▼'; // Возрастание (треугольник вверх с пробелом)
+                    // Для state === 0 (без сортировки) треугольник не добавляется
+                }
+                return `<th data-column-index="${i}" style="cursor: pointer; min-width: 200px; white-space: nowrap; user-select: none;">${col}${arrow}</th>`;
+            }).join('') + '</tr>';
+            const tbody = document.getElementById('tutoringBody');
+            tbody.innerHTML = '';
+            let result;
+            if (currentTable === 'classes') {
+                // Для таблицы classes делаем JOIN, чтобы получить ФИО и цену за час
+                result = db.exec(`SELECT t.fio AS teacher_fio, s.fio AS student_fio, c.subject, c.date_time, c.duration, p.price_per_hour, c.id FROM Classes c LEFT JOIN Teachers t ON c.teacher_id = t.id LEFT JOIN Students s ON c.student_id = s.id LEFT JOIN Prices p ON c.subject = p.subject`);
+                if (result[0] && result[0].values) {
+                    // Добавлено: сортировка данных перед отображением
+                    let values = result[0].values;
+                    if (currentSortColumn !== null) {
+                        const actualIndex = currentTable === 'classes' ? currentSortColumn : currentSortColumn + 1; // Для classes id в конце, для остальных в начале
+                        values = values.sort((a, b) => {
+                            let valA = a[actualIndex];
+                            let valB = b[actualIndex];
+                            // Простая сортировка: числа как числа, остальное как строки
+                            if (!isNaN(valA) && !isNaN(valB)) {
+                                valA = parseFloat(valA);
+                                valB = parseFloat(valB);
+                                return currentSortDirection === 'desc' ? valB - valA : valA - valB;
+                            } else {
+                                valA = valA ? valA.toString() : '';
+                                valB = valB ? valB.toString() : '';
+                                return currentSortDirection === 'desc' ? valB.localeCompare(valA) : valA.localeCompare(valB);
+                            }
+                        });
+                    }
+                    values.forEach(row => {
+                        const tr = document.createElement('tr');
+                        // Показываем teacher_fio, student_fio, subject, date_time, duration, price_per_hour (убираем id из отображения)
+                        tr.innerHTML = [row[0] || '', row[1] || '', row[2] || '', row[3].replace(/T/, ' ') || '', row[4] || '', row[5] || ''].map(cell => `<td>${cell}</td>`).join('');
+                        tr.addEventListener('click', (e) => selectUser(row[6], e)); // id все еще используется для выбора
+                        tbody.appendChild(tr);
+                    });
+                }
+            } else {
+                // Для остальных таблиц обычный запрос, но без столбца id
+                result = db.exec(`SELECT * FROM ${table.name}`);
+                if (result[0] && result[0].values) {
+                    // Добавлено: сортировка данных перед отображением
+                    let values = result[0].values;
+                    if (currentSortColumn !== null) {
+                        const actualIndex = currentTable === 'classes' ? currentSortColumn : currentSortColumn + 1; // Для classes id в конце, для остальных в начале
+                        values = values.sort((a, b) => {
+                            let valA = a[actualIndex];
+                            let valB = b[actualIndex];
+                            // Простая сортировка: числа как числа, остальное как строки
+                            if (!isNaN(valA) && !isNaN(valB)) {
+                                valA = parseFloat(valA);
+                                valB = parseFloat(valB);
+                                return currentSortDirection === 'desc' ? valB - valA : valA - valB;
+                            } else {
+                                valA = valA ? valA.toString() : '';
+                                valB = valB ? valB.toString() : '';
+                                return currentSortDirection === 'desc' ? valB.localeCompare(valA) : valA.localeCompare(valB);
+                            }
+                        });
+                    }
+                    values.forEach(row => {
+                        const tr = document.createElement('tr');
+                        // Пропускаем первый элемент (id), показываем остальные
+                        tr.innerHTML = row.slice(1).map(cell => `<td>${cell || ''}</td>`).join('');
+                        tr.addEventListener('click', (e) => selectUser(row[0], e));
+                        tbody.appendChild(tr);
+                    });
+                }
+            }
+            updateButtons();
+            // Добавлено: добавляем обработчики кликов на заголовки столбцов после отрисовки таблицы
+            document.querySelectorAll('#tableHead th').forEach(th => {
+                th.addEventListener('click', () => {
+                    const index = parseInt(th.dataset.columnIndex);
+                    if (!sortStates[currentTable]) sortStates[currentTable] = {};
+
+                    // Получаем текущее состояние для текущего столбца и вычисляем новое
+                    const currentState = sortStates[currentTable][index] || 0;
+                    const newState = (currentState + 1) % 3;
+
+                    // Сбрасываем сортировку для всех столбцов текущей таблицы
+                    Object.keys(sortStates[currentTable]).forEach(key => {
+                        sortStates[currentTable][key] = 0; // Устанавливаем все в 0 (без сортировки)
+                    });
+
+                    // Устанавливаем новое состояние только для текущего столбца
+                    sortStates[currentTable][index] = newState;
+                    const state = newState;
+
+                    if (state === 0) {
+                        currentSortColumn = null;
+                        currentSortDirection = null;
+                    } else {
+                        currentSortColumn = index;
+                        currentSortDirection = state === 1 ? 'desc' : 'asc';
+                    }
+                    displayTable(); // Перерисовываем таблицу с новой сортировкой
+                });
+            });
+        }
+
+
+        function selectUser(id, event) {
+            selectedUserId = id;
+            document.querySelectorAll('#tutoringBody tr').forEach(row => row.classList.remove('selected'));
+            event.target.closest('tr').classList.add('selected');
+            updateButtons();
+        }
+
+        function updateButtons() {
+            document.getElementById('editBtn').disabled = !selectedUserId;
+            document.getElementById('deleteBtn').disabled = !selectedUserId;
+        }
+
+        function generateForm(data = {}) {
+            const formFields = document.getElementById('formFields');
+            formFields.innerHTML = '';
+            if (currentTable === 'classes') {
+                tables[currentTable].fields.forEach(field => {
+                    const label = document.createElement('label');
+                    label.htmlFor = field.name;
+                    label.textContent = field.label + ': ';
+                    formFields.appendChild(label);
+                    if (field.name === 'teacher_id') {
+                        const select = document.createElement('select');
+                        select.id = 'teacher-select';
+                        select.name = field.name;
+                        select.required = true;
+                        select.innerHTML = '<option value="">Выберите преподавателя</option>';
+                        formFields.appendChild(select);
+                    } else if (field.name === 'student_id') {
+                        const select = document.createElement('select');
+                        select.id = 'student-select';
+                        select.name = field.name;
+                        select.required = true;
+                        select.innerHTML = '<option value="">Выберите ученика</option>';
+                        formFields.appendChild(select);
+                    } else if (field.name === 'subject') {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.id = 'subject';
+                        input.name = field.name;
+                        input.readonly = true;
+                        input.value = data[field.name] || '';
+                        input.disabled = true;
+                        formFields.appendChild(input);
+                        input.classList.add('readonly-field');
+                    } else if (field.name === 'duration') {
+                        const input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
+                        input.type = field.type;
+                        if (field.step) input.step = field.step;
+                        input.id = input.name = field.name;
+                        input.value = data[field.name] || '';
+                        formFields.appendChild(input);
+                        // После duration добавляем поле "Цена за час"
+                        const priceLabel = document.createElement('label');
+                        priceLabel.htmlFor = 'price_per_hour';
+                        priceLabel.textContent = 'Цена за час: ';
+                        formFields.appendChild(priceLabel);
+                        const priceInput = document.createElement('input');
+                        priceInput.type = 'number';
+                        priceInput.id = 'price_per_hour';
+                        priceInput.name = 'price_per_hour';
+                        priceInput.step = '0.01';
+                        priceInput.readonly = true;
+                        priceInput.value = data.price_per_hour || '';
+                        priceInput.disabled = true;
+                        formFields.appendChild(priceInput);
+                        formFields.appendChild(document.createElement('br'));
+                        priceInput.classList.add('readonly-field');
+                    } else {
+                        const input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
+                        input.type = field.type;
+                        if (field.step) input.step = field.step;
+                        input.id = input.name = field.name;
+                        input.value = data[field.name] || '';
+                        formFields.appendChild(input);
+                    }
+                    formFields.appendChild(document.createElement('br'));
+                });
+            } else {
+                tables[currentTable].fields.forEach(field => {
+                    const label = document.createElement('label');
+                    label.htmlFor = field.name;
+                    label.textContent = field.label + ': ';
+                    formFields.appendChild(label);
+                    if (currentTable === 'teachers' && field.name === 'subject') {
+                        // Создаем выпадающий список для предметов из таблицы Prices
+                        const select = document.createElement('select');
+                        select.id = field.name;
+                        select.name = field.name;
+                        select.required = true;
+                        // Добавляем опцию по умолчанию
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = 'Выберите предмет';
+                        select.appendChild(defaultOption);
+                        // Получаем существующие предметы из Prices
+                        const existingSubjects = getExistingSubjects();
+                        existingSubjects.forEach(subject => {
+                            const option = document.createElement('option');
+                            option.value = subject;
+                            option.textContent = subject;
+                            if (data[field.name] === subject) option.selected = true;
+                            select.appendChild(option);
+                        });
+                        formFields.appendChild(select);
+                    } else if (field.name === 'phone') {
+                        const input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
+                        input.type = field.type;
+                        input.name = field.name;
+                        input.placeholder = '+71234567890';
+                        input.maxLength = 12;
+                        input.addEventListener('input', function () {
+                            // Ограничиваем ввод только цифрами и знаком +
+                            this.value = this.value.replace(/[^\d\+]/g, '');
+                            // Убеждаемся, что номер начинается с +7
+                            if (this.value && !this.value.startsWith('+7')) {
+                                this.value = '+7' + this.value.replace(/^\+7?/, '');
+                            }
+                            // Ограничиваем длину после +7 до 10 цифр
+                            if (this.value.length > 12) {
+                                this.value = this.value.substring(0, 12);
+                            }
+                            // Проверяем формат и показываем подсказку
+                            const hint = document.getElementById('phone-hint');
+                            if (this.value && !/^\+7\d{10}$/.test(this.value)) {
+                                hint.style.display = 'inline';
+                            } else {
+                                hint.style.display = 'none';
+                            }
+                        });
+                        input.addEventListener('keydown', function (e) {
+                            // Предотвращаем ввод недопустимых символов
+                            const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+                            if (!allowedKeys.includes(e.key) && !/\d/.test(e.key) && e.key !== '+') {
+                                e.preventDefault();
+                            }
+                        });
+                        // Добавляем подсказку после input
+                        const hint = document.createElement('span');
+                        hint.id = 'phone-hint';
+                        hint.textContent = 'Неверный формат. Ожидается: +71234567890 (10 цифр после +7).';
+                        hint.style.color = 'red';
+                        hint.style.display = 'none';
+                        hint.style.fontSize = '0.9em';
+                        formFields.appendChild(input);
+                        formFields.appendChild(hint);
+                        formFields.appendChild(document.createElement('br'));
+                    } else {
+                        const input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
+                        input.type = field.type;
+                        if (field.step) input.step = field.step;
+                        input.id = input.name = field.name;
+                        input.value = data[field.name] || '';
+                        formFields.appendChild(input);
+                    }
+                    formFields.appendChild(document.createElement('br'));
+                });
+            }
+        }
+
+        function addRecord(tableName, data) {
+            // Находим таблицу по имени (используем Object.values для поиска в объекте tables)
+            const table = Object.values(tables).find(t => t.name === tableName);
+            if (!table) {
+                showErrorModal('Ошибка: Таблица ' + tableName + ' не найдена.');
+                return;
+            }
+
+            const fields = table.fields.map(f => f.name);
+            const placeholders = fields.map(() => '?').join(',');
+
+            try {
+                // Проверка уникальности phone для Teachers и Students
+                if (tableName === 'Teachers' || tableName === 'Students') {
+                    const checkStmt = db.prepare(`SELECT COUNT(*) as count FROM ${tableName} WHERE phone = ?`);
+                    const result = checkStmt.get(data.phone);
+                    if (result.count > 0) {
+                        throw new Error(`Номер телефона ${data.phone} уже существует в таблице ${tableName}.`);
+                    }
+                    checkStmt.free();
+                }
+
+                // Проверка уникальности subject для Prices
+                if (tableName === 'Prices') {
+                    const checkStmt = db.prepare(`SELECT COUNT(*) as count FROM ${tableName} WHERE subject = ?`);
+                    const result = checkStmt.get(data.subject);
+                    if (result.count > 0) {
+                        throw new Error(`Предмет ${data.subject} уже существует в таблице ${tableName}.`);
+                    }
+                    checkStmt.free();
+                }
+
+                // Проверка существования subject в Prices для Teachers и Classes (референциальная целостность)
+                if (tableName === 'Teachers' || tableName === 'Classes') {
+                    const checkSubject = db.prepare('SELECT COUNT(*) as count FROM Prices WHERE subject = ?');
+                    const res = checkSubject.get(data.subject);
+                    if (res.count === 0) {
+                        throw new Error('Предмет не существует в таблице Prices.');
+                    }
+                    checkSubject.free();
+                }
+
+                // Проверка существования teacher_id и student_id для Classes
+                if (tableName === 'Classes') {
+                    const checkTeacher = db.prepare('SELECT COUNT(*) as count FROM Teachers WHERE id = ?');
+                    const resT = checkTeacher.get(data.teacher_id);
+                    if (resT.count === 0) {
+                        throw new Error('Учитель с таким ID не существует.');
+                    }
+                    checkTeacher.free();
+
+                    const checkStudent = db.prepare('SELECT COUNT(*) as count FROM Students WHERE id = ?');
+                    const resS = checkStudent.get(data.student_id);
+                    if (resS.count === 0) {
+                        throw new Error('Ученик с таким ID не существует.');
+                    }
+                    checkStudent.free();
+                }
+
+                // Вставка записи (id вставляется как NULL для AUTOINCREMENT)
+                const values = fields.map(f => data[f]); // Если поле не в data, будет undefined (NULL)
+                db.run(`INSERT INTO ${tableName} (${fields.join(',')}) VALUES (${placeholders})`, values);
+                saveDatabase();
+                displayTable();
+                closeErrorModal();
+            } catch (error) {
+                showErrorModal('Ошибка: ' + error.message);
+                console.error('Ошибка при добавлении записи:', error);
+            }
+        }
+
+        function editRecord(id, data) {
+            try {
+                const table = tables[currentTable];
+                const fields = table.fields.map(f => f.name);
+                const setClause = fields.map(f => `${f} = ?`).join(', ');
+                db.run(`UPDATE ${table.name} SET ${setClause} WHERE id = ?`, [...fields.map(f => data[f]), id]);
+                saveDatabase();
+                displayTable();
+            } catch (error) {
+                showErrorModal('Ошибка: ' + error.message);
+            }
+        }
+
+        function deleteRecord(id) {
+            const table = tables[currentTable];
+            db.run(`DELETE FROM ${table.name} WHERE id = ?`, [id]);
+            saveDatabase();
+            displayTable();
+            selectedUserId = null;
+        }
+
+        function fillTestData(count) {
+            generateRandomData(currentTable, count);
+        }
+
+        function clearTable() {
+            const table = tables[currentTable];
+            db.run(`DELETE FROM ${table.name}`);
+            saveDatabase();
+            displayTable();
+            selectedUserId = null;
+        }
+
+        function showErrorModal(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-modal').style.display = 'block';
+        }
+
+        function closeErrorModal() {
+            document.getElementById('error-modal').style.display = 'none';
+        }
+
+        function attachEventListeners() {
+            document.getElementById('tableSelector').addEventListener('change', (e) => {
+                currentTable = e.target.value;
+                selectedUserId = null;
+                // Добавлено: сбрасываем сортировку при переключении таблицы
+                currentSortColumn = null;
+                currentSortDirection = null;
+                displayTable();
+            });
+
+            document.getElementById('addBtn').addEventListener('click', () => {
+                document.getElementById('modalTitle').textContent = 'Добавить';
+                generateForm();
+                if (currentTable === 'classes') {
+                    loadTeachers();
+                    loadStudents();
+                    addTeacherChangeListener();
+                }
+                document.getElementById('AddEditModal').style.display = 'block';
+            });
+            document.getElementById('editBtn').addEventListener('click', () => {
+                if (!selectedUserId) return;
+                document.getElementById('modalTitle').textContent = 'Редактировать';
+                const result = db.exec(`SELECT * FROM ${tables[currentTable].name} WHERE id = ?`, [selectedUserId]);
+                if (result[0] && result[0].values[0]) {
+                    const row = result[0].values[0];
+                    const data = {};
+                    tables[currentTable].fields.forEach((field, i) => data[field.name] = row[i + 1]); // id is first
+                    generateForm(data);
+                    if (currentTable === 'classes') {
+                        loadTeachers();
+                        loadStudents();
+                        addTeacherChangeListener();
+                        document.getElementById('teacher-select').value = data.teacher_id;
+                        document.getElementById('student-select').value = data.student_id;
+                        const teacherId = data.teacher_id;
+                        if (teacherId) {
+                            const stmt = db.prepare('SELECT subject FROM Teachers WHERE id = ?');
+                            stmt.bind([teacherId]);
+                            if (stmt.step()) {
+                                const row = stmt.getAsObject();
+                                document.getElementById('subject').value = row.subject || '';
+                                // Получить цену из Prices
+                                const priceStmt = db.prepare('SELECT price_per_hour FROM Prices WHERE subject = ?');
+                                priceStmt.bind([row.subject]);
+                                if (priceStmt.step()) {
+                                    const priceRow = priceStmt.getAsObject();
+                                    document.getElementById('price_per_hour').value = priceRow.price_per_hour || '';
+                                }
+                                priceStmt.free();
+                            }
+                            stmt.free();
+                        }
+                    }
+                    document.getElementById('AddEditModal').style.display = 'block';
+                }
+            });
+            document.getElementById('deleteBtn').addEventListener('click', () => {
+                if (!selectedUserId) return;
+                document.getElementById('deleteModal').style.display = 'block';
+            });
+            document.getElementById('testBtn').addEventListener('click', () => {
+                document.getElementById('testModal').style.display = 'block';
+            });
+            // Модалы
+            document.querySelectorAll('.close').forEach(close => close.addEventListener('click', () => {
+                document.getElementById('AddEditModal').style.display = 'none';
+                document.getElementById('deleteModal').style.display = 'none';
+                document.getElementById('testModal').style.display = 'none';
+            }));
+            document.getElementById('userForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = {};
+                tables[currentTable].fields.forEach(field => data[field.name] = formData.get(field.name));
+                if (currentTable === 'classes') {
+                    data['subject'] = document.getElementById('subject').value;
+                }
+
+                // Проверка формата телефона перед сохранением
+                const phoneField = data['phone'];
+                if (currentTable === 'teachers' || currentTable === 'students') {
+                    const hint = document.getElementById('phone-hint');
+                    if (!phoneField) {
+                        if (hint) {
+                            hint.textContent = 'Поле телефона обязательно для заполнения.';
+                            hint.style.display = 'inline';
+                        }
+                        return;
+                    }
+
+                    if (!/^\+7\d{10}$/.test(phoneField)) {
+                        if (hint) {
+                            hint.textContent = 'Неверный формат. Ожидается: +71234567890 (10 цифр после +7).';
+                            hint.style.display = 'inline';
+                        }
+                        return; // Предотвращаем сохранение
+                    } else {
+                        if (hint) hint.style.display = 'none';
+                    }
+                }
+
+                if (document.getElementById('modalTitle').textContent === 'Добавить') {
+                    addRecord(tables[currentTable].name, data);
+                } else {
+                    editRecord(selectedUserId, data);
+                }
+                document.getElementById('AddEditModal').style.display = 'none';
+            });
+            document.getElementById('cancelAddEdit').addEventListener('click', () => {
+                document.getElementById('AddEditModal').style.display = 'none';
+            });
+            document.getElementById('confirmDelete').addEventListener('click', () => {
+                deleteRecord(selectedUserId);
+                document.getElementById('deleteModal').style.display = 'none';
+            });
+            document.getElementById('cancelDelete').addEventListener('click', () => {
+                document.getElementById('deleteModal').style.display = 'none';
+            });
+            document.getElementById('fillBtn').addEventListener('click', () => {
+                const count = parseInt(document.getElementById('numRecords').value);
+                fillTestData(count);
+                document.getElementById('testModal').style.display = 'none';
+            });
+            document.getElementById('cancelTest').addEventListener('click', () => {
+                document.getElementById('testModal').style.display = 'none';
+            });
+            document.getElementById('clearBtn').addEventListener('click', () => {
+                if (confirm('Вы уверены, что хотите очистить всю таблицу? Это действие необратимо.')) {
+                    clearTable();
+                }
+            });
+            document.getElementById('close-modal').addEventListener('click', closeErrorModal);
+            window.addEventListener('click', function (event) {
+                if (event.target === document.getElementById('error-modal')) {
+                    closeErrorModal();
+                }
+            });
+        }
+
+        // Функция для переключения секций
+        function showSection(sectionId) {
+            document.getElementById('main').style.display = sectionId === 'main' ? 'block' : 'none';
+            document.getElementById('about').style.display = sectionId === 'about' ? 'block' : 'none';
+        }
+
+        // Обработчики для ссылок
+        document.getElementById('main-link').addEventListener('click', function (e) {
+            e.preventDefault(); // Предотвращаем стандартный переход по якорю
+            showSection('main');
+        });
+        document.getElementById('about-link').addEventListener('click', function (e) {
+            e.preventDefault(); // Предотвращаем стандартный переход по якорю
+            showSection('about');
+        });
+
+        // По умолчанию показываем главную секцию
+        showSection('main');
+
+        // Запуск инициализации
+        initDatabase();
+    </script>
+</body>
+
+</html>
