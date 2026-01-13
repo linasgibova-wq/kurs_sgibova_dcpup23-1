@@ -16,7 +16,7 @@
             border-collapse: collapse;
             margin-top: 20px;
         }
-        
+
         u {
             text-decoration: underline;
             text-underline-offset: 3px;
@@ -58,6 +58,31 @@
             width: 80%;
             max-width: 600px;
             border-radius: 8px;
+        }
+
+        .modal-content-two {
+            background-color: #fefefe;
+            margin: 4% 30%;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        /* 3. доп. обертка, чтобы селект можно было отдельно центрировать */
+        .select-wrap {
+            display: flex;
+            justify-content: center;
+            /* сам селект по центру */
+            width: 100%;
+        }
+
+        .my-phone-hint {
+            color: red;
+            font-size: 0.9em;
+            display: none;
         }
 
         .close {
@@ -118,6 +143,7 @@
         nav {
             display: flex;
             justify-content: center;
+            max-height: 600px;
             gap: 20px;
         }
 
@@ -143,27 +169,66 @@
 </head>
 
 <body>
-    <header>
+    <header id="head">
         <nav>
+            <div style="margin-right: auto;"></div> <!-- Пустой блок слева для баланса -->
             <a href="#main" id="main-link">Главная</a>
             <a href="#about" id="about-link">Об авторе</a>
+            <div id="userInfo" style="margin-left: auto;">
+                Подтвердить удаление
+            </div>
         </nav>
     </header>
+    <div id="login" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Вход</h2>
+            <form id="loginForm">
+                <label>Телефон: <input type="input" id="phoneInput" placeholder="+71234567890" maxlength="12"
+                        required></label><br>
+                <span id="phone-hint" class="my-phone-hint">Неверный формат. Ожидается: +71234567890 (10 цифр после
+                    +7).</span><br>
+                <label>Пароль: <input type="password" id="passInput" name="password" required></label><br>
+                <div class="select-wrap">
+                    <select id="roleSelector">
+                        <option value="teacher">Преподаватель</option>
+                        <option value="student">Ученик</option>
+                        <option value="administrator">Администратор</option>
+                    </select>
+                </div>
+                <button type="submit">Войти</button>
+                <button type="button" id="regTeacher">Зарегистрировать преподавателя</button>
+                <button type="button" id="regStudent">Зарегистрировать ученика</button>
+            </form>
+        </div>
+    </div>
+    <!-- Модальное окно для добавления/редактирования -->
+    <div id="AddEditModal" class="modal" style="display: none;">
+        <div class="modal-content-two">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Добавить</h2>
+            <form id="userForm">
+                <div id="formFields"></div>
+                <button type="submit">Сохранить</button>
+                <button type="button" id="cancelAddEdit">Отмена</button>
+            </form>
+        </div>
+    </div>
+    <div id="error-modal" class="modal"
+        style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-content"
+            style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px;">
+            <span id="close-modal"
+                style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            <p id="error-message"></p>
+        </div>
+    </div>
     <div id="main">
         <h1>Информационно-справочная система онлайн репетиторства</h1>
-        <div id="error-modal" class="modal"
-            style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
-            <div class="modal-content"
-                style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px;">
-                <span id="close-modal"
-                    style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-                <p id="error-message"></p>
-            </div>
-        </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div>
-                <select id="tableSelector">
+            <div style="display: flex; align-items: center;">
+                <select id="tableSelector" style="display: flex; align-items: center;">
                     <option value="prices">Предметы</option>
+                    <option value="administrators">Администраторы</option>
                     <option value="teachers">Преподаватели</option>
                     <option value="students">Ученики</option>
                     <option value="classes">Занятия</option>
@@ -172,7 +237,7 @@
                 <button id="editBtn" disabled>Редактировать</button>
                 <button id="deleteBtn" disabled>Удалить</button>
             </div>
-            <div>
+            <div style="display: flex; align-items: center;">
                 <button id="testBtn">Заполнить</button>
                 <button id="clearBtn">Очистить</button>
             </div>
@@ -192,18 +257,6 @@
             <tbody id="tutoringBody"></tbody>
         </table>
 
-        <!-- Модальное окно для добавления/редактирования -->
-        <div id="AddEditModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2 id="modalTitle">Добавить</h2>
-                <form id="userForm">
-                    <div id="formFields"></div>
-                    <button type="submit">Сохранить</button>
-                    <button type="button" id="cancelAddEdit">Отмена</button>
-                </form>
-            </div>
-        </div>
         <!-- Модальное окно для подтверждения удаления -->
         <div id="deleteModal" class="modal">
             <div class="modal-content">
@@ -231,11 +284,14 @@
         <h1>Об авторе</h1>
         <p><u>ФИО:</u> Сгибова Ангелина Львовна</p>
         <p><u>Группа:</u> ДЦПУП23-1</p>
-        <p><u>Учебное заведение:</u> ФГОБУ ВО "Финансовый университет при правительстве Российской Федерации (Финансовый университет)"</p>
+        <p><u>Учебное заведение:</u> ФГОБУ ВО "Финансовый университет при правительстве Российской Федерации (Финансовый
+            университет)"</p>
         <p><u>Номер телефона:</u> +79023414040</p>
         <p><u>Почта:</u> sgibova.angelina@mail.ru</p>
-        <p><u>Описание:</u> Данный проект реализован с помощью языка разметки HTML, декларативного языка стилей CSS и языка программирования JavaScript.</p>
-        <p>Также в данном проекте использовалась база данных Sqlite. Запросы к базе данных осуществлялись с помощью языка запросов SQL.</p>
+        <p><u>Описание:</u> Данный проект реализован с помощью языка разметки HTML, декларативного языка стилей CSS и
+            языка программирования JavaScript.</p>
+        <p>Также в данном проекте использовалась база данных Sqlite. Запросы к базе данных осуществлялись с помощью
+            языка запросов SQL.</p>
         <p><u>Дата начала проекта:</u> 20.09.2025</p>
         <p><u>Дата завершения проекта:</u> 11.12.2025</p>
     </div>
@@ -244,23 +300,36 @@
         let db;
         let selectedUserId = null;
         let currentTable = 'prices';
+        let currentId = 0;
+        let currentRole = 'teacher';
         let currentSortColumn = null; // Индекс столбца для сортировки (0-based)
         let currentSortDirection = null; // 'desc' (убывание), 'asc' (возрастание) или null (без сортировки)
         let sortStates = {}; // Объект для хранения состояния сортировки: sortStates[tableName][columnIndex] = 0 (нет), 1 (desc), 2 (asc)
 
         const tables = {
-            teachers: {
-                name: 'Teachers',
-                columns: ['ФИО', 'О преподавателе', 'Название предмета', 'Стаж (лет)', 'Телефон', 'Рейтинг'],
+            administrators: {
+                name: 'Administrators',
+                columns: ['ФИО', 'Телефон', 'Пароль'],
                 fields: [
                     { name: 'fio', label: 'ФИО', type: 'text' },
-                    { name: 'about', label: 'О преподавателе', type: 'textarea' },
-                    { name: 'subject', label: 'Название предмета', type: 'text' },
-                    { name: 'experience', label: 'Стаж', type: 'number' },
                     { name: 'phone', label: 'Телефон', type: 'text' },
-                    { name: 'rating', label: 'Рейтинг', type: 'number', step: '0.1' },
+                    { name: 'password', label: 'Пароль', type: 'text' }
                 ],
-                createSQL: "CREATE TABLE IF NOT EXISTS Teachers (id INTEGER PRIMARY KEY AUTOINCREMENT, fio TEXT UNIQUE, about TEXT, subject TEXT, experience INTEGER, phone TEXT UNIQUE, rating REAL, FOREIGN KEY (subject) REFERENCES Prices(subject))"
+                createSQL: "CREATE TABLE IF NOT EXISTS Administrators (id INTEGER PRIMARY KEY AUTOINCREMENT, fio TEXT UNIQUE, phone TEXT UNIQUE, password TEXT)"
+            },
+            teachers: {
+                name: 'Teachers',
+                columns: ['ФИО', 'Телефон', 'Название предмета', 'О преподавателе', 'Стаж (лет)', 'Рейтинг'],
+                fields: [
+                    { name: 'fio', label: 'ФИО', type: 'text' },
+                    { name: 'phone', label: 'Телефон', type: 'text' },
+                    { name: 'password', label: 'Пароль', type: 'text' },
+                    { name: 'subject', label: 'Название предмета', type: 'text' },
+                    { name: 'about', label: 'О преподавателе', type: 'textarea' },
+                    { name: 'experience', label: 'Стаж', type: 'number' },
+                    { name: 'rating', label: 'Рейтинг', type: 'number', step: '0.1' }
+                ],
+                createSQL: "CREATE TABLE IF NOT EXISTS Teachers (id INTEGER PRIMARY KEY AUTOINCREMENT, fio TEXT UNIQUE, phone TEXT UNIQUE, password TEXT, subject TEXT, about TEXT, experience INTEGER, rating REAL, FOREIGN KEY (subject) REFERENCES Prices(subject))"
             },
             students: {
                 name: 'Students',
@@ -268,11 +337,12 @@
                 fields: [
                     { name: 'fio', label: 'ФИО', type: 'text' },
                     { name: 'phone', label: 'Телефон', type: 'text' },
+                    { name: 'password', label: 'Пароль', type: 'text' },
                     { name: 'email', label: 'Email', type: 'email' },
                     { name: 'birthdate', label: 'Дата рождения', type: 'date' },
                     { name: 'school_class', label: 'Класс школы', type: 'text' },
                 ],
-                createSQL: "CREATE TABLE IF NOT EXISTS Students (id INTEGER PRIMARY KEY AUTOINCREMENT, fio TEXT UNIQUE, phone TEXT UNIQUE, email TEXT, birthdate TEXT, school_class TEXT)"
+                createSQL: "CREATE TABLE IF NOT EXISTS Students (id INTEGER PRIMARY KEY AUTOINCREMENT, fio TEXT UNIQUE, phone TEXT UNIQUE, password TEXT, email TEXT, birthdate TEXT, school_class TEXT)"
             },
             prices: {
                 name: 'Prices',
@@ -285,9 +355,9 @@
             },
             classes: {
                 name: 'Classes',
-                columns: ['ФИО учителя', 'ФИО ученика', 'Название предмета', 'Дата и время', 'Продолжительность (мин)', 'Цена за час'],
+                columns: ['ФИО преподавателя', 'ФИО ученика', 'Название предмета', 'Дата и время', 'Продолжительность (мин)', 'Цена за час'],
                 fields: [
-                    { name: 'teacher_id', label: 'ФИО учителя', type: 'number' },
+                    { name: 'teacher_id', label: 'ФИО преподавателя', type: 'number' },
                     { name: 'student_id', label: 'ФИО ученика', type: 'number' },
                     { name: 'subject', label: 'Название предмета', type: 'text' },
                     { name: 'date_time', label: 'Дата и время', type: 'datetime-local' },
@@ -296,6 +366,38 @@
                 createSQL: "CREATE TABLE IF NOT EXISTS Classes (id INTEGER PRIMARY KEY AUTOINCREMENT, teacher_id INTEGER, student_id INTEGER, subject TEXT, date_time TEXT, duration INTEGER, FOREIGN KEY (teacher_id) REFERENCES Teachers(id) ON DELETE CASCADE, FOREIGN KEY (student_id) REFERENCES Students(id) ON DELETE CASCADE)"
             }
         };
+
+        const roleButtons = {
+            administrator: {
+                prices: [true, true, true, true, true],
+                administrators: [true, true, true, true, true],
+                teachers: [true, true, true, true, true],
+                students: [true, true, true, true, true],
+                classes: [true, true, true, true, true]
+            },
+            teacher: {
+                prices: [false, false, false, false, false],
+                administrators: [false, false, false, false, false],
+                teachers: [false, false, false, false, false],
+                students: [false, false, false, false, false],
+                classes: [true, true, true, false, false]
+            },
+            student: {
+                prices: [false, false, false, false, false],
+                administrators: [false, false, false, false, false],
+                teachers: [false, false, false, false, false],
+                students: [false, false, false, false, false],
+                classes: [false, false, false, false, false]
+            }
+        };
+
+        const roleSelect = {
+            administrator: ["prices", "administrators", "teachers", "students", "classes"],
+            teacher: ["prices", "teachers", "students", "classes"],
+            student: ["prices", "teachers", "classes"]
+        };
+
+        const buttons = ['addBtn', 'editBtn', 'deleteBtn', 'testBtn', 'clearBtn'];
 
         function generateUniqueFio(usedFios) {
             const names = ['Иван', 'Мария', 'Алексей', 'Ольга', 'Дмитрий', 'Анна', 'Сергей', 'Елена', 'Андрей', 'Татьяна'];
@@ -434,8 +536,15 @@
         }
 
         function generateRandomData(tableName, count) {
+            const table = tables[currentTable];
+
             // Получаем существующие данные для FK и уникальности
             const existingSubjects = getExistingSubjects();
+            if (existingSubjects.length === 0 && tableName === 'teachers') {
+                console.warn('Нет предметов в таблице Prices. Добавьте сначала предметы!');
+                return;
+            }
+
             const existingTeacherIds = getExistingTeacherIds();
             const existingStudentIds = getExistingStudentIds();
 
@@ -444,105 +553,48 @@
             const usedEmails = new Set();
             const usedSubjects = new Set();
             const usedClasses = new Set(); // Для Classes: уникальность по (teacher_id, date_time)
-            const usedTeacherFios = new Set();
-            const usedStudentFios = new Set();
+            const usedFios = new Set();
 
-            // Получить существующие уникальные данные
+            let key, date_time;
+            let phone, email, fio;
+            let attemptsPhone = 0;
+            let attemptsEmail = 0;
+
             try {
-                const teacherPhones = db.exec('SELECT phone FROM Teachers');
-                if (teacherPhones.length > 0) {
-                    teacherPhones[0].values.forEach(row => usedPhones.add(row[0]));
-                }
-                const studentPhones = db.exec('SELECT phone FROM Students');
-                if (studentPhones.length > 0) {
-                    studentPhones[0].values.forEach(row => usedPhones.add(row[0]));
-                }
-                const studentEmails = db.exec('SELECT email FROM Students');
-                if (studentEmails.length > 0) {
-                    studentEmails[0].values.forEach(row => usedEmails.add(row[0]));
-                }
-                const subjectsData = db.exec('SELECT DISTINCT subject FROM Prices');
-                if (subjectsData.length > 0) {
-                    subjectsData[0].values.forEach(row => usedSubjects.add(row[0]));
-                }
-                const classesData = db.exec('SELECT teacher_id, date_time FROM Classes');
-                if (classesData.length > 0) {
-                    classesData[0].values.forEach(row => usedClasses.add(`${row[0]}-${row[1]}`));
-                }
-                const teacherFios = db.exec('SELECT fio FROM Teachers');
-                if (teacherFios.length > 0) {
-                    teacherFios[0].values.forEach(row => usedTeacherFios.add(row[0]));
-                }
-                const studentFios = db.exec('SELECT fio FROM Students');
-                if (studentFios.length > 0) {
-                    studentFios[0].values.forEach(row => usedStudentFios.add(row[0]));
-                }
-            } catch (error) {
-                console.error('Ошибка при получении существующих уникальных данных:', error);
-            }
-
-            if (tableName === 'prices') {
-                const allSubjects = ['Математика', 'Физика', 'Химия', 'Биология', 'История', 'Литература', 'Английский', 'Русский'];
-                const availableSubjects = allSubjects.filter(subject => !usedSubjects.has(subject));
-                const subjectsToAdd = availableSubjects.slice(0, count); // Ограничить количеством count
-                subjectsToAdd.forEach(subject => {
-                    usedSubjects.add(subject);
-                    try {
+                if (tableName === 'prices') {
+                    const allSubjects = ['Математика', 'Физика', 'Химия', 'Биология', 'История', 'Литература', 'Английский', 'Русский'];
+                    const availableSubjects = allSubjects.filter(subject => !usedSubjects.has(subject));
+                    const subjectsToAdd = availableSubjects.slice(0, count); // Ограничить количеством count
+                    subjectsToAdd.forEach(subject => {
+                        usedSubjects.add(subject);
                         addRecord('Prices', {
                             subject: subject,
                             price_per_hour: Math.floor(Math.random() * 2000) + 500
                         });
-                    } catch (error) {
-                        console.warn(`Ошибка при добавлении в Prices: ${error.message}. Пропускаем.`);
-                    }
-                });
-            } else if (tableName === 'teachers') {
-                if (existingSubjects.length === 0) {
-                    console.warn('Нет предметов в таблице Prices. Добавьте предметы сначала.');
+                    });
                     return;
                 }
-                for (let i = 0; i < count; i++) {
-                    let phone, fio;
-                    let attemptsPhone = 0;
-                    do {
-                        phone = generateRandomPhone();
-                        attemptsPhone++;
-                    } while (usedPhones.has(phone) && attemptsPhone < 100);
-                    if (attemptsPhone >= 100) {
-                        console.warn('Не удалось сгенерировать уникальный телефон для teachers после 100 попыток.');
-                        break;
-                    }
+
+                if (tableName != 'classes') {
+                    // Получить существующие уникальные данные
                     try {
-                        fio = generateUniqueFio(usedTeacherFios);
+                        const Fios = db.exec(`SELECT fio FROM ${table.name}`);
+                        if (Fios.length > 0) {
+                            Fios[0].values.forEach(row => usedFios.add(row[0]));
+                        }
                     } catch (error) {
-                        console.warn(`Не удалось сгенерировать уникальное ФИО для teachers: ${error.message}`);
-                        usedPhones.delete(phone);
-                        break;
+                        console.error('Ошибка при получении существующих уникальных данных:', error);
                     }
-                    usedPhones.add(phone);
-                    usedTeacherFios.add(fio);
+                }
+
+                
+                for (let i = 0; i < count; i++) {
                     const subject = existingSubjects[Math.floor(Math.random() * existingSubjects.length)];
                     const experience = Math.floor(Math.random() * 16) + 5;
                     const description = generateRandomText(subject, experience);
-                    try {
-                        addRecord('Teachers', {
-                            fio: fio,
-                            subject: subject,
-                            experience: experience,
-                            about: description,
-                            phone: phone,
-                            rating: (Math.random() * 5).toFixed(1)
-                        });
-                    } catch (error) {
-                        console.warn(`Ошибка при добавлении в Teachers: ${error.message}. Пропускаем.`);
-                        usedPhones.delete(phone);
-                        usedTeacherFios.delete(fio);
-                    }
-                }
-            } else if (tableName === 'students') {
-                for (let i = 0; i < count; i++) {
-                    let phone, email, fio;
-                    let attemptsPhone = 0;
+                    const teacherId = existingTeacherIds[Math.floor(Math.random() * existingTeacherIds.length)];
+                    const studentId = existingStudentIds[Math.floor(Math.random() * existingStudentIds.length)];
+
                     do {
                         phone = generateRandomPhone();
                         attemptsPhone++;
@@ -551,59 +603,38 @@
                         console.warn('Не удалось сгенерировать уникальный телефон для students после 100 попыток.');
                         break;
                     }
-                    try {
-                        fio = generateUniqueFio(usedStudentFios);
-                    } catch (error) {
-                        console.warn(`Не удалось сгенерировать уникальное ФИО для students: ${error.message}`);
-                        usedPhones.delete(phone);
-                        break;
+
+                    if (tableName != 'classes') {
+                        try {
+                            fio = generateUniqueFio(usedFios);
+                        } catch (error) {
+                            console.warn(`Не удалось сгенерировать уникальное ФИО для teachers: ${error.message}`);
+                            usedPhones.delete(phone);
+                            break;
+                        }
+                    
+                        do {
+                            email = generateRandomEmail(fio);
+                            attemptsEmail++;
+                        } while (usedEmails.has(email) && attemptsEmail < 100);
+                        if (attemptsEmail >= 100) {
+                            console.warn('Не удалось сгенерировать уникальный email для students после 100 попыток.');
+                            usedPhones.delete(phone);
+                            continue;
+                        }
                     }
-                    usedPhones.add(phone);
-                    usedStudentFios.add(fio);
-                    let attemptsEmail = 0;
-                    do {
-                        email = generateRandomEmail(fio);
-                        attemptsEmail++;
-                    } while (usedEmails.has(email) && attemptsEmail < 100);
-                    if (attemptsEmail >= 100) {
-                        console.warn('Не удалось сгенерировать уникальный email для students после 100 попыток.');
-                        usedPhones.delete(phone);
-                        usedStudentFios.delete(fio);
-                        continue;
-                    }
-                    usedEmails.add(email);
-                    try {
-                        addRecord('Students', {
-                            fio: fio,
-                            phone: phone,
-                            email: email,
-                            birthdate: generateRandomDate(),
-                            school_class: generateRandomClass()
-                        });
-                    } catch (error) {
-                        console.warn(`Ошибка при добавлении в Students: ${error.message}. Пропускаем.`);
-                        usedPhones.delete(phone);
-                        usedEmails.delete(email);
-                        usedStudentFios.delete(fio);
-                    }
-                }
-            } else if (tableName === 'classes') {
-                if (existingTeacherIds.length === 0 || existingStudentIds.length === 0 || existingSubjects.length === 0) {
-                    console.warn('Недостаточно данных в связанных таблицах (Teachers, Students, Prices). Добавьте данные сначала.');
-                    return;
-                }
-                for (let i = 0; i < count; i++) {
-                    const teacherId = existingTeacherIds[Math.floor(Math.random() * existingTeacherIds.length)];
-                    const studentId = existingStudentIds[Math.floor(Math.random() * existingStudentIds.length)];
-                    const subject = existingSubjects[Math.floor(Math.random() * existingSubjects.length)];
-                    let date_time;
-                    let key;
+
                     do {
                         date_time = generateRandomDateTime();
                         key = `${teacherId}-${date_time}`;
                     } while (usedClasses.has(key));
-                    usedClasses.add(key);
-                    try {
+
+                    if (tableName === 'classes') {
+                        if (existingTeacherIds.length === 0 || existingStudentIds.length === 0 || existingSubjects.length === 0) {
+                            console.warn('Недостаточно данных в связанных таблицах (Teachers, Students, Prices). Добавьте данные сначала.');
+                            return;
+                        }
+                        usedClasses.add(key);
                         addRecord('Classes', {
                             teacher_id: teacherId,
                             student_id: studentId,
@@ -611,10 +642,63 @@
                             date_time: date_time,
                             duration: Math.floor(Math.random() * 60) + 30
                         });
-                    } catch (error) {
-                        console.warn(`Ошибка при добавлении в Classes: ${error.message}. Пропускаем.`);
+                        continue;
+                    }
+
+                    usedPhones.add(phone);
+                    usedFios.add(fio);
+
+                    if (tableName === 'teachers') {
+                        addRecord('Teachers', {
+                            fio: fio,
+                            phone: phone,
+                            password: "123",
+                            subject: subject,
+                            about: description,
+                            experience: experience,
+                            rating: (Math.random() * 5).toFixed(1)
+                        });
+                    } else if (tableName === 'students') {
+                        addRecord('Students', {
+                            fio: fio,
+                            phone: phone,
+                            password: "123",
+                            email: email,
+                            birthdate: generateRandomDate(),
+                            school_class: generateRandomClass()
+                        });
+
+                    } else if (tableName === 'administrators') {
+                        addRecord('Administrators', {
+                            fio: fio,
+                            phone: phone,
+                            password: "123"
+                        });
                     }
                 }
+            }
+            catch (error) {
+                console.warn(`Ошибка при добавлении в ${table.name}: ${error.message}. Пропускаем.`);
+                usedPhones.delete(phone);
+                usedEmails.delete(email);
+                usedClasses.delete(key);
+                usedFios.delete(fio);
+            }
+        }
+
+        // Функция для очистки select списка выбора таблицы
+        function ClearTableSelect() {
+            var sel = document.getElementById('tableSelector');
+
+            while (sel.childNodes.length) {
+                // Данный if только для Opera-ы, которая не удаляет
+                // optgroup, если в нем есть элементы.
+                if (sel.firstChild.tagName == 'OPTGROUP') {
+                    while (sel.firstChild.childNodes.length) {
+                        sel.firstChild.removeChild(sel.firstChild.firstChild);
+                    }
+                }
+                sel.removeChild(sel.firstChild);
             }
         }
 
@@ -728,12 +812,29 @@
         async function initDatabase() {
             try {
                 const SQL = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` });
+
                 const savedData = await loadDatabase();
+
                 db = savedData ? new SQL.Database(savedData) : new SQL.Database();
-                db.run('PRAGMA foreign_keys = ON;');
+                db.run("PRAGMA foreign_keys = ON;");
                 Object.values(tables).forEach(table => db.run(table.createSQL));
                 displayTable();
                 attachEventListeners(); // Добавлено для фикса кнопок
+
+                let phone, fio, password;
+                fio = 'Сгибова Ангелина Львовна';
+                phone = '+79023414040';
+                //phone = '+72222222222';
+                password = 'admin';
+
+                const result = db.exec('SELECT COUNT(*) as count FROM Administrators WHERE phone = ?', [phone]);
+                if (result[0].values[0][0] === 0) {
+                    addRecord('Administrators', {
+                        fio: fio,
+                        phone: phone,
+                        password: password
+                    });
+                }
             } catch (error) {
                 console.error('Ошибка инициализации БД:', error);
             }
@@ -755,69 +856,57 @@
             const tbody = document.getElementById('tutoringBody');
             tbody.innerHTML = '';
             let result;
-            if (currentTable === 'classes') {
-                // Для таблицы classes делаем JOIN, чтобы получить ФИО и цену за час
-                result = db.exec(`SELECT t.fio AS teacher_fio, s.fio AS student_fio, c.subject, c.date_time, c.duration, p.price_per_hour, c.id FROM Classes c LEFT JOIN Teachers t ON c.teacher_id = t.id LEFT JOIN Students s ON c.student_id = s.id LEFT JOIN Prices p ON c.subject = p.subject`);
-                if (result[0] && result[0].values) {
-                    // Добавлено: сортировка данных перед отображением
-                    let values = result[0].values;
-                    if (currentSortColumn !== null) {
-                        const actualIndex = currentTable === 'classes' ? currentSortColumn : currentSortColumn + 1; // Для classes id в конце, для остальных в начале
-                        values = values.sort((a, b) => {
-                            let valA = a[actualIndex];
-                            let valB = b[actualIndex];
-                            // Простая сортировка: числа как числа, остальное как строки
-                            if (!isNaN(valA) && !isNaN(valB)) {
-                                valA = parseFloat(valA);
-                                valB = parseFloat(valB);
-                                return currentSortDirection === 'desc' ? valB - valA : valA - valB;
-                            } else {
-                                valA = valA ? valA.toString() : '';
-                                valB = valB ? valB.toString() : '';
-                                return currentSortDirection === 'desc' ? valB.localeCompare(valA) : valA.localeCompare(valB);
-                            }
-                        });
-                    }
-                    values.forEach(row => {
-                        const tr = document.createElement('tr');
-                        // Показываем teacher_fio, student_fio, subject, date_time, duration, price_per_hour (убираем id из отображения)
-                        tr.innerHTML = [row[0] || '', row[1] || '', row[2] || '', row[3].replace(/T/, ' ') || '', row[4] || '', row[5] || ''].map(cell => `<td>${cell}</td>`).join('');
-                        tr.addEventListener('click', (e) => selectUser(row[6], e)); // id все еще используется для выбора
-                        tbody.appendChild(tr);
-                    });
-                }
+            if (currentTable === 'classes' && currentRole === 'teacher') {
+                result = db.exec(`SELECT c.id, t.fio AS teacher_fio, s.fio AS student_fio, c.subject, c.date_time, c.duration, p.price_per_hour FROM Classes c JOIN Teachers t ON c.teacher_id = t.id JOIN Students s ON c.student_id = s.id JOIN Prices p ON c.subject = p.subject WHERE c.teacher_id = ?`, [currentId]);
+            } else if (currentTable === 'classes' && currentRole === 'student') {
+                result = db.exec(`SELECT c.id, t.fio AS teacher_fio, s.fio AS student_fio, c.subject, c.date_time, c.duration, p.price_per_hour FROM Classes c JOIN Teachers t ON c.teacher_id = t.id JOIN Students s ON c.student_id = s.id JOIN Prices p ON c.subject = p.subject WHERE c.student_id = ?`, [currentId]);
+            } else if (currentTable === 'classes') {
+                result = db.exec(`SELECT c.id, t.fio AS teacher_fio, s.fio AS student_fio, c.subject, c.date_time, c.duration, p.price_per_hour FROM Classes c JOIN Teachers t ON c.teacher_id = t.id JOIN Students s ON c.student_id = s.id JOIN Prices p ON c.subject = p.subject`);
             } else {
-                // Для остальных таблиц обычный запрос, но без столбца id
                 result = db.exec(`SELECT * FROM ${table.name}`);
-                if (result[0] && result[0].values) {
-                    // Добавлено: сортировка данных перед отображением
-                    let values = result[0].values;
-                    if (currentSortColumn !== null) {
-                        const actualIndex = currentTable === 'classes' ? currentSortColumn : currentSortColumn + 1; // Для classes id в конце, для остальных в начале
-                        values = values.sort((a, b) => {
-                            let valA = a[actualIndex];
-                            let valB = b[actualIndex];
-                            // Простая сортировка: числа как числа, остальное как строки
-                            if (!isNaN(valA) && !isNaN(valB)) {
-                                valA = parseFloat(valA);
-                                valB = parseFloat(valB);
-                                return currentSortDirection === 'desc' ? valB - valA : valA - valB;
-                            } else {
-                                valA = valA ? valA.toString() : '';
-                                valB = valB ? valB.toString() : '';
-                                return currentSortDirection === 'desc' ? valB.localeCompare(valA) : valA.localeCompare(valB);
-                            }
-                        });
-                    }
-                    values.forEach(row => {
-                        const tr = document.createElement('tr');
-                        // Пропускаем первый элемент (id), показываем остальные
-                        tr.innerHTML = row.slice(1).map(cell => `<td>${cell || ''}</td>`).join('');
-                        tr.addEventListener('click', (e) => selectUser(row[0], e));
-                        tbody.appendChild(tr);
+            }
+
+            if (result[0] && result[0].values) {
+                // Добавлено: сортировка данных перед отображением
+                let values = result[0].values;
+                if (currentSortColumn !== null) {
+                    const actualIndex = currentTable === 'classes' ? currentSortColumn : currentSortColumn + 1; // Для classes id в конце, для остальных в начале
+                    values = values.sort((a, b) => {
+                        let valA = a[actualIndex];
+                        let valB = b[actualIndex];
+                        // Простая сортировка: числа как числа, остальное как строки
+                        if (!isNaN(valA) && !isNaN(valB)) {
+                            valA = parseFloat(valA);
+                            valB = parseFloat(valB);
+                            return currentSortDirection === 'desc' ? valB - valA : valA - valB;
+                        } else {
+                            valA = valA ? valA.toString() : '';
+                            valB = valB ? valB.toString() : '';
+                            return currentSortDirection === 'desc' ? valB.localeCompare(valA) : valA.localeCompare(valB);
+                        }
                     });
                 }
+
+                values.forEach(row => {
+                    const tr = document.createElement('tr');
+                    let row_map;
+                    if (currentTable === 'classes') {
+                        // Показываем teacher_fio, student_fio, subject, date_time, duration, price_per_hour (убираем id из отображения)
+                        row_map = [row[1] || '', row[2] || '', row[3] || '', row[4].replace(/T/, ' ') || '', row[5] || '', row[6] || ''];
+                    }
+                    else {
+                        if (currentTable === 'students' || currentTable === 'teachers') {
+                            row.splice(3, 1);
+                        }
+
+                        row_map = row.slice(1);
+                    }
+                    tr.innerHTML = row_map.map(cell => `<td>${cell || ''}</td>`).join('');
+                    tr.addEventListener('click', (e) => selectUser(row[0], e)); // id все еще используется для выбора
+                    tbody.appendChild(tr);
+                });
             }
+
             updateButtons();
             // Добавлено: добавляем обработчики кликов на заголовки столбцов после отрисовки таблицы
             document.querySelectorAll('#tableHead th').forEach(th => {
@@ -850,7 +939,6 @@
             });
         }
 
-
         function selectUser(id, event) {
             selectedUserId = id;
             document.querySelectorAll('#tutoringBody tr').forEach(row => row.classList.remove('selected'));
@@ -861,6 +949,34 @@
         function updateButtons() {
             document.getElementById('editBtn').disabled = !selectedUserId;
             document.getElementById('deleteBtn').disabled = !selectedUserId;
+        }
+
+        function phoneInputProcessing() {
+            // Ограничиваем ввод только цифрами и знаком +
+            this.value = this.value.replace(/[^\d\+]/g, '');
+            // Убеждаемся, что номер начинается с +7
+            if (this.value && !this.value.startsWith('+7')) {
+                this.value = '+7' + this.value.replace(/^\+7?/, '');
+            }
+            // Ограничиваем длину после +7 до 10 цифр
+            if (this.value.length > 12) {
+                this.value = this.value.substring(0, 12);
+            }
+            // Проверяем формат и показываем подсказку
+            const hint = document.getElementById('phone-hint');
+            if (this.value && !/^\+7\d{10}$/.test(this.value)) {
+                hint.style.display = 'inline';
+            } else {
+                hint.style.display = 'none';
+            }
+        }
+
+        function phoneKeyDownProcessing(e) {
+            // Предотвращаем ввод недопустимых символов
+            const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+            if (!allowedKeys.includes(e.key) && !/\d/.test(e.key) && e.key !== '+') {
+                e.preventDefault();
+            }
         }
 
         function generateForm(data = {}) {
@@ -962,32 +1078,10 @@
                         input.name = field.name;
                         input.placeholder = '+71234567890';
                         input.maxLength = 12;
-                        input.addEventListener('input', function () {
-                            // Ограничиваем ввод только цифрами и знаком +
-                            this.value = this.value.replace(/[^\d\+]/g, '');
-                            // Убеждаемся, что номер начинается с +7
-                            if (this.value && !this.value.startsWith('+7')) {
-                                this.value = '+7' + this.value.replace(/^\+7?/, '');
-                            }
-                            // Ограничиваем длину после +7 до 10 цифр
-                            if (this.value.length > 12) {
-                                this.value = this.value.substring(0, 12);
-                            }
-                            // Проверяем формат и показываем подсказку
-                            const hint = document.getElementById('phone-hint');
-                            if (this.value && !/^\+7\d{10}$/.test(this.value)) {
-                                hint.style.display = 'inline';
-                            } else {
-                                hint.style.display = 'none';
-                            }
-                        });
-                        input.addEventListener('keydown', function (e) {
-                            // Предотвращаем ввод недопустимых символов
-                            const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-                            if (!allowedKeys.includes(e.key) && !/\d/.test(e.key) && e.key !== '+') {
-                                e.preventDefault();
-                            }
-                        });
+                        input.addEventListener('input', phoneInputProcessing);
+                        input.addEventListener('keydown', phoneKeyDownProcessing);
+                        input.value = data[field.name] || '';
+
                         // Добавляем подсказку после input
                         const hint = document.createElement('span');
                         hint.id = 'phone-hint';
@@ -1011,6 +1105,27 @@
             }
         }
 
+        function CheckRecordEqualZero(checkTableName, checkColumn, checkField) {
+            const result = db.exec(`SELECT COUNT(*) as count FROM ${checkTableName} WHERE ${checkColumn} = ?`, [checkField]);
+            if (result[0].values[0][0] === 0) {
+                return true;
+            }
+            return false;
+        }
+
+        function CheckRecordEqualMore(checkTableName, checkColumn, checkField) {
+            const result = db.exec(`SELECT COUNT(*) as count FROM ${checkTableName} WHERE ${checkColumn} = ?`, [checkField]);
+            if (result[0].values[0][0] > 0) {
+                return true;
+            }
+            return false;
+        }
+        
+        function GetRecord(checkTableName, checkColumn, checkField) {
+            const result = db.exec(`SELECT * FROM ${checkTableName} WHERE ${checkColumn} = ?`, [checkField]);
+            return result[0].values[0];
+        }
+
         function addRecord(tableName, data) {
             // Находим таблицу по имени (используем Object.values для поиска в объекте tables)
             const table = Object.values(tables).find(t => t.name === tableName);
@@ -1023,51 +1138,47 @@
             const placeholders = fields.map(() => '?').join(',');
 
             try {
+                let checkField;
+                let checkTableName = tableName;
+
                 // Проверка уникальности phone для Teachers и Students
-                if (tableName === 'Teachers' || tableName === 'Students') {
-                    const checkStmt = db.prepare(`SELECT COUNT(*) as count FROM ${tableName} WHERE phone = ?`);
-                    const result = checkStmt.get(data.phone);
-                    if (result.count > 0) {
-                        throw new Error(`Номер телефона ${data.phone} уже существует в таблице ${tableName}.`);
+                if (tableName === 'Teachers' || tableName === 'Students' || tableName === 'Administrators') {
+                    checkField = data.phone;
+                    if (CheckRecordEqualMore(checkTableName, 'phone', checkField) === true) {
+                        throw new Error(`Пользователь с номером телефона ${checkField} уже существует в таблице ${checkTableName}.`);
                     }
-                    checkStmt.free();
                 }
 
                 // Проверка уникальности subject для Prices
                 if (tableName === 'Prices') {
-                    const checkStmt = db.prepare(`SELECT COUNT(*) as count FROM ${tableName} WHERE subject = ?`);
-                    const result = checkStmt.get(data.subject);
-                    if (result.count > 0) {
-                        throw new Error(`Предмет ${data.subject} уже существует в таблице ${tableName}.`);
+                    checkField = data.subject;
+                    if (CheckRecordEqualMore(checkTableName, 'subject', checkField) === true) {
+                        throw new Error(`Предмет \"${checkField}\" уже существует в таблице ${checkTableName}.`);
                     }
-                    checkStmt.free();
                 }
 
                 // Проверка существования subject в Prices для Teachers и Classes (референциальная целостность)
                 if (tableName === 'Teachers' || tableName === 'Classes') {
-                    const checkSubject = db.prepare('SELECT COUNT(*) as count FROM Prices WHERE subject = ?');
-                    const res = checkSubject.get(data.subject);
-                    if (res.count === 0) {
+                    checkField = data.subject;
+                    checkTableName = 'Prices';
+                    if (CheckRecordEqualZero(checkTableName, 'subject', checkField) === true) {
                         throw new Error('Предмет не существует в таблице Prices.');
                     }
-                    checkSubject.free();
                 }
 
                 // Проверка существования teacher_id и student_id для Classes
                 if (tableName === 'Classes') {
-                    const checkTeacher = db.prepare('SELECT COUNT(*) as count FROM Teachers WHERE id = ?');
-                    const resT = checkTeacher.get(data.teacher_id);
-                    if (resT.count === 0) {
+                    checkField = data.teacher_id;
+                    checkTableName = 'Teachers';
+                    if (CheckRecordEqualZero(checkTableName, 'id', checkField) === true) {
                         throw new Error('Учитель с таким ID не существует.');
                     }
-                    checkTeacher.free();
 
-                    const checkStudent = db.prepare('SELECT COUNT(*) as count FROM Students WHERE id = ?');
-                    const resS = checkStudent.get(data.student_id);
-                    if (resS.count === 0) {
+                    checkField = data.student_id;
+                    checkTableName = 'Students';
+                    if (CheckRecordEqualZero(checkTableName, 'id', checkField) === true) {
                         throw new Error('Ученик с таким ID не существует.');
                     }
-                    checkStudent.free();
                 }
 
                 // Вставка записи (id вставляется как NULL для AUTOINCREMENT)
@@ -1128,9 +1239,15 @@
             document.getElementById('tableSelector').addEventListener('change', (e) => {
                 currentTable = e.target.value;
                 selectedUserId = null;
-                // Добавлено: сбрасываем сортировку при переключении таблицы
+                // Сбрасываем сортировку при переключении таблицы
                 currentSortColumn = null;
                 currentSortDirection = null;
+
+
+                buttons.forEach(function (item, index, array) {
+                    document.getElementById(item).style.display = (roleButtons[currentRole][currentTable][index] === true) ? 'block' : 'none';
+                });
+
                 displayTable();
             });
 
@@ -1226,7 +1343,11 @@
                     }
                 }
 
-                if (document.getElementById('modalTitle').textContent === 'Добавить') {
+                if (
+                    document.getElementById('modalTitle').textContent === 'Добавить' ||
+                    document.getElementById('modalTitle').textContent === 'Зарегистрировать преподавателя' ||
+                    document.getElementById('modalTitle').textContent === 'Зарегистрировать ученика'
+                ) {
                     addRecord(tables[currentTable].name, data);
                 } else {
                     editRecord(selectedUserId, data);
@@ -1257,6 +1378,75 @@
                 }
             });
             document.getElementById('close-modal').addEventListener('click', closeErrorModal);
+            document.getElementById('phoneInput').addEventListener('input', phoneInputProcessing);
+            document.getElementById('phoneInput').addEventListener('keydown', phoneKeyDownProcessing);
+
+            // Обработка входа
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                let mapTableName = new Map();
+                mapTableName.set("teacher", "Teachers");
+                mapTableName.set("student", "Students");
+                mapTableName.set("administrator", "Administrators");
+
+                let mapEntityName = new Map();
+                mapEntityName.set("teacher", "Преподаватель");
+                mapEntityName.set("student", "Ученик");
+                mapEntityName.set("administrator", "Администратор");
+
+                let currentTableName = mapTableName.get(currentRole);
+                let phoneNumber = document.getElementById('phoneInput').value;
+                if (CheckRecordEqualMore(currentTableName, 'phone', phoneNumber) === false) {
+                    showErrorModal(mapEntityName.get(currentRole) + " с номером телефона " + phoneNumber + " не зарегистрирован!");
+                    return;
+                }
+                
+                let row = GetRecord(currentTableName, 'phone', phoneNumber);
+                if (row[0] === 0) {
+                    showErrorModal(mapEntityName.get(currentRole) + " с номером телефона " + phoneNumber + " не удалось получить!");
+                    return;
+                }
+
+                let mapTableEl = new Map();
+                mapTableEl.set("teacher", "teachers");
+                mapTableEl.set("student", "students");
+                mapTableEl.set("administrator", "administrators");
+
+                const data = {};
+                tables[mapTableEl.get(currentRole)].fields.forEach((field, i) => data[field.name] = row[i + 1]); // id is first
+
+                let pass = document.getElementById('passInput').value;
+                if (data['password'] != pass) {
+                    showErrorModal("Введён неверный пароль!");
+                    return;
+                }
+
+                currentId = row[0];
+
+                const newText = data['fio'] + "\n" + "Роль: " + mapEntityName.get(currentRole);
+
+                document.getElementById('userInfo').innerHTML = newText.replace(/\n/g, '<br>');
+                document.getElementById('userInfo').style.textAlign = 'left';
+
+                currentTable = 'prices';
+                displayTable();
+                showSection('main');
+            });
+            document.getElementById('roleSelector').addEventListener('change', (e) => {
+                currentRole = e.target.value;
+            });
+            document.getElementById('regTeacher').addEventListener('click', () => {
+                currentTable = 'teachers';
+                document.getElementById('modalTitle').textContent = 'Зарегистрировать преподавателя';
+                generateForm();
+                document.getElementById('AddEditModal').style.display = 'block';
+            });
+            document.getElementById('regStudent').addEventListener('click', () => {
+                currentTable = 'students';
+                document.getElementById('modalTitle').textContent = 'Зарегистрировать ученика';
+                generateForm();
+                document.getElementById('AddEditModal').style.display = 'block';
+            });
             window.addEventListener('click', function (event) {
                 if (event.target === document.getElementById('error-modal')) {
                     closeErrorModal();
@@ -1266,8 +1456,34 @@
 
         // Функция для переключения секций
         function showSection(sectionId) {
+            document.getElementById('head').style.display = sectionId === 'login' ? 'none' : 'block';
             document.getElementById('main').style.display = sectionId === 'main' ? 'block' : 'none';
             document.getElementById('about').style.display = sectionId === 'about' ? 'block' : 'none';
+            document.getElementById('login').style.display = sectionId === 'login' ? 'block' : 'none';
+
+            if (sectionId === 'main') {
+                let mapSelectName = new Map();
+                mapSelectName.set("prices", "Предметы");
+                mapSelectName.set("administrators", "Администраторы");
+                mapSelectName.set("teachers", "Преподаватели");
+                mapSelectName.set("students", "Ученики");
+                mapSelectName.set("classes", "Занятия");
+
+                ClearTableSelect();
+
+                let selTables = document.getElementById('tableSelector');
+                roleSelect[currentRole].forEach(function (item, index, array) {
+                    selTables.add(new Option(mapSelectName.get(item), item));
+                });
+
+                // Создаем и диспатчим событие 'change'
+                const event = new Event('change', {
+                    bubbles: true, // Важно!  Позволяет событию всплывать по DOM-дереву
+                    cancelable: true,
+                });
+
+                selTables.dispatchEvent(event);
+            }
         }
 
         // Обработчики для ссылок
@@ -1280,11 +1496,11 @@
             showSection('about');
         });
 
-        // По умолчанию показываем главную секцию
-        showSection('main');
-
         // Запуск инициализации
         initDatabase();
+
+        // По умолчанию показываем главную секцию
+        showSection('login');
     </script>
 </body>
 
